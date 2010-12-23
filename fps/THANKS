@@ -1,0 +1,56 @@
+CODE CONTRIBUTORS
+=================
+
+Initial code was taken from:
+http://nehe.gamedev.net/data/lessons/lesson.asp?lesson=10
+
+TGA and JPG file formats loading code was taken from:
+http://www.gametutorials.com/Tutorials/opengl/OpenGL_Pg2.htm
+
+Mirror code was taken from a newsgroup post:
+http://groups.google.com/groups?q=mirror+opengl&hl=en&lr=&ie=UTF-8&oe=utf-8&selm=53cn35%24h13%40fido.asd.sgi.com&rnum=1
+
+Apache Web Server CVS Repository
+
+
+
+
+TOOLS
+=====
+
+Compilers: gcc(g++), icc, VS C++ Copmiler
+Source control: CVS, ViewCVS
+Web Server: Apache web server
+Editor: gvim
+Building Tools: MS Visual Stidio, make, autoconf
+Image editing: Gimp
+Other: cygwin, zip, tar
+
+
+
+BOOKS
+=====
+
+OpenGL Game Programming by Hawkins and Astle
+OpenGL Programming Guide by Woo, Neider, Davis and Shreiner
+Mathematics for 3D Game Programming & Computer Graphics by Eric Lengyel
+
+
+
+TUTORIALS
+=========
+
+Guru of the Week by Herb Sutter
+      http://gotw.ca/gotw/index.htm
+
+Multiple Inheritance for C++ by Bjarne Stroustrup
+      http://citeseer.nj.nec.com/stroustrup99multiple.html
+
+
+
+OTHER CONTRIBUTORS
+=================
+
+Quake3 - PAK0.PK3 archive, for some models and textures
+
+

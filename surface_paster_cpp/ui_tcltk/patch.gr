@@ -1,0 +1,521 @@
+#!/bin/csh
+#\
+exec ./sp -f $0 $*
+
+# ========================================================================= #
+#                                 CS 488/688                                #
+#                          Introduction to Graphics                         #
+#                                                                           #
+#                  Assignment 3: Hierarchical Transformations               #
+#                                                                           #
+# ========================================================================= #
+
+# Give application a title
+wm title . "Surface Paster"
+
+# Set desired bounds on overall dimensions
+wm minsize . 200 200
+wm maxsize . 1000 1000
+
+# Desired initial width and height of the OpenGL widget
+set width 850
+set height 700
+
+# -----------------------------------------------------------------------
+# The menu bar 
+# -----------------------------------------------------------------------
+set menuBar .mbar
+frame .mbar -relief raised -bd 4
+pack .mbar -side top -anchor w -fill x
+
+# -----------------------------------------------------------------------
+# File menu 
+# -----------------------------------------------------------------------
+menubutton .mbar.fileMenu -text File -menu .mbar.fileMenu.menu
+menu .mbar.fileMenu.menu
+
+# Reset Entries entry 
+.mbar.fileMenu.menu add command -label "Reset Position" -accelerator I -command {ResetPosition; $raster render}
+.mbar.fileMenu.menu add command -label "Reset Orientation" -accelerator O -command {ResetOrientation; $raster render}
+.mbar.fileMenu.menu add command -label "Reset Joints" -accelerator N -command {ResetJoints}
+.mbar.fileMenu.menu add command -label "Reset All" -accelerator R -command {ResetPosition; ResetPosition; ResetOrientation; $raster render}
+
+# `Quit' entry 
+.mbar.fileMenu.menu add command -label "Quit" -accelerator Q -command exit 
+
+menubutton .mbar.modeMenu -text "Mode" -menu .mbar.modeMenu.menu
+menu .mbar.modeMenu.menu
+
+.mbar.modeMenu.menu add radio -label "Position/Orientation" -accelerator P -command {} -variable mode -value orient
+.mbar.modeMenu.menu add radio -label "Joints" -accelerator J -command {} -variable mode -value joints
+
+
+
+
+menubutton .mbar.drawModeMenu -text "Draw Mode" -menu .mbar.drawModeMenu.menu
+menu .mbar.drawModeMenu.menu
+
+.mbar.drawModeMenu.menu add radio -label "Wire-Frame" -accelerator W -command {gr_mode W; $raster render} -variable drawMode -value wire
+.mbar.drawModeMenu.menu add radio -label "Shaded" -accelerator F -command {gr_mode F; $raster render} -variable drawMode -value face
+.mbar.drawModeMenu.menu add radio -label "Control Net" -accelerator N -command {gr_mode C; $raster render} -variable drawMode -value net
+
+
+menubutton .mbar.otherMenu -text "Other" -menu .mbar.otherMenu.menu
+menu .mbar.otherMenu.menu
+
+.mbar.otherMenu.menu add checkbutton -label "Change Dimention" -accelerator D -command {gr_dim; $raster render} -variable huy
+.mbar.otherMenu.menu add checkbutton -label "Approximation" -accelerator A -command {gr_approx; $raster render} -variable huy2
+
+
+
+
+
+menubutton .mbar.optionsMenu -text "Options" -menu .mbar.optionsMenu.menu
+menu .mbar.optionsMenu.menu
+
+.mbar.optionsMenu.menu add check -label "Circle" -accelerator C -command {gr_trackball "" {0 0} {0 0} 0; $raster render} -variable circle
+
+
+
+pack .mbar.fileMenu .mbar.modeMenu .mbar.drawModeMenu .mbar.optionsMenu .mbar.otherMenu -side left
+
+# -----------------------------------------------------------------------
+# Make OpenGL display area using Togl
+# -----------------------------------------------------------------------
+frame .frame -bd 2m -relief sunken
+pack .frame -expand yes -fill both -padx 2m -pady 2m
+
+# Use a variable to keep track of this widget
+set raster .frame.raster
+
+# Set up the OpenGL rendering area with all the options we'll need
+togl $raster \
+    -rgba true \
+    -redsize 2 \
+    -greensize 2 \
+    -bluesize 2 \
+    -depth true \
+    -depthsize 12 \
+    -double true \
+    -width $width \
+    -height $height
+pack $raster -padx 1m -pady 1m -fill both -expand yes 
+
+# -----------------------------------------------------------------------
+# Event Bindings 
+# -----------------------------------------------------------------------
+
+# Mouse button 1 depressed
+bind $raster <Button-1> {
+    if {$comments} {
+        puts stderr "Testing: <Button-1> event"
+    }
+    set b1 1
+}
+
+
+proc switchColor {huy} {
+    global attributes physical raster
+    
+    if {[lindex $attributes($huy) 2] == 0} {
+        set attributes($huy) [eval list [lrange $attributes($huy) 0 1] 1 \
+            [lrange $attributes($huy) 3 end]]
+        gr_surfaceproperty $huy darkred
+    } else {
+        set attributes($huy) [eval list [lrange $attributes($huy) 0 1] 0 \
+            [lrange $attributes($huy) 3 end]]
+        gr_surfaceproperty $huy [lindex $attributes($huy) 0]
+    }
+}
+
+# Mouse button 1 released
+bind $raster <ButtonRelease-1> {
+    if {$comments} {
+        puts stderr "Testing: <ButtonRelease-1> event"
+    }
+    set b1 0
+    if {$mode == "joints"} {
+        set pick [gr_pick : [list %x %y]]
+#puts "Picked:   $pick"
+          
+
+        if {$pick != ""} {
+          set pick_list [split $pick ":"]
+          #set main_node [join [lrange $pick_list 0 [expr [llength $pick_list] - 4]] :]
+          set main_node $pick
+        
+          switchColor $main_node
+        }
+     
+        $raster render
+    }
+}
+
+# Mouse button 2 depressed
+bind $raster <Button-2> {
+    if {$comments} {
+        puts stderr "Testing: <Button-2> event"
+    }
+    set b2 1
+}
+
+# Mouse button 2 released
+bind $raster <ButtonRelease-2> {
+    if {$comments} {
+        puts stderr "Testing: <ButtonRelease-2> event"
+    }
+    set b2 0
+}
+
+# Mouse button 3 depressed
+bind $raster <Button-3> {
+    if {$comments} {
+        puts stderr "Testing: <Button-3> event"
+    }
+    set b3     1
+}
+
+# Mouse button 3 released
+bind $raster <ButtonRelease-3> {
+    if {$comments} {
+        puts stderr "Testing: <ButtonRelease-3> event"
+    }
+    set b3 0
+}
+
+proc rotationNode {name} {
+    return :[join [lrange [split $name :] 1 end-1] : ]
+}
+
+# Mouse moved
+bind $raster <Motion> {
+    if {$comments} {
+        puts stderr "Testing: <Motion> event: %x,%y"
+    }
+
+    set lastx $x
+    set x %x
+    set lasty $y
+    set y %y
+
+    set xm 0
+    set ym 0
+    set zm 0
+
+    set changes [expr $b1 | $b2 | $b3]
+    
+    if {$mode == "orient"} {
+        foreach a [list b1 b2 b3] {
+            if {[set $a]} {
+                set "${a}m" [expr (%x-$lastx)/40.0]
+            } else {
+                set "${a}m" 0
+            }
+        }
+        
+        if {$b1} {
+            set xm [expr (%x-$lastx)/$translationFactor]
+            set ym [expr -(%y-$lasty)/$translationFactor]
+            gr_translate $mainNode [list $xm $ym 0]
+        }
+        
+        if {$b2} {
+            set zm [expr -(%y-$lasty)/($translationFactor/2.0)]
+            gr_translate $mainNode [list 0 0 $zm]
+        }
+        
+        if {$b3} {
+            gr_trackball :trackball [list $lastx [expr 0+$lasty]] \
+                              [list %x [expr 0+%y]] 1
+        }
+        if {$changes} {
+        }
+    } else {
+
+      if {$b2} {
+        if {0} {  
+            #comment this out
+
+            foreach node [array names attributes] {
+                if {[lindex $attributes($node) 2] == 1} {
+                    gr_rotate $node:rot x [expr (%y-$lasty)/20.0]
+                }
+            }
+        }
+        
+            set xm [expr (%x-$lastx)/$translationFactor]
+            set ym [expr -(%y-$lasty)/$translationFactor]
+            gr_mv_ctrl_pts $mainNode [list $xm $ym 0]        
+
+        
+      }
+        
+      if {$b3} {
+        
+            set zm [expr (%x-$lastx)/$translationFactor]
+            gr_mv_ctrl_pts $mainNode [list 0 0 $zm]        
+
+        
+      }
+        
+    }
+    
+    # post redisplay
+    if {$changes} {$raster render}
+}
+
+bind . <A> {.mbar.otherMenu.menu invoke 2 }
+bind . <a> [bind . <A>]
+
+bind . <C> {.mbar.optionsMenu.menu invoke 1 }
+bind . <c> [bind . <C>]
+
+bind . <D> {.mbar.otherMenu.menu invoke 1 }
+bind . <d> [bind . <D>]
+
+bind . <F> {.mbar.drawModeMenu.menu invoke 2 }
+bind . <f> [bind . <F>]
+
+bind . <I> {.mbar.fileMenu.menu invoke 1 }
+bind . <i> [bind . <I>]
+
+bind . <J> {.mbar.modeMenu.menu invoke 2 }
+bind . <j> [bind . <J>]
+
+bind . <N> {.mbar.fileMenu.menu invoke 3 }
+bind . <n> [bind . <N>]
+
+bind . <N> {.mbar.drawModeMenu.menu invoke 3 }
+bind . <n> [bind . <N>]
+
+bind . <O> {.mbar.fileMenu.menu invoke 2 }
+bind . <o> [bind . <O>]
+
+bind . <P> {.mbar.modeMenu.menu invoke 1 }
+bind . <p> [bind . <P>]
+
+bind . <Q> {.mbar.fileMenu.menu invoke 5 }
+bind . <q> [bind . <Q>]
+
+bind . <R> {.mbar.fileMenu.menu invoke 4 }
+bind . <r> [bind . <R>]
+
+bind . <S> {gr_save patch.png }
+bind . <s> [bind . <S>]
+
+bind . <W> {.mbar.drawModeMenu.menu invoke 1 }
+bind . <w> [bind . <W>]
+
+
+bind . <2> {gr_chmrk 0 -1; $raster render}
+bind . <KP_Down> [bind . <2>]
+
+bind . <8> {gr_chmrk 0 1 ; $raster render}
+bind . <KP_Up> [bind . <8>]
+
+bind . <4> {gr_chmrk 1 -1; $raster render}
+bind . <KP_Left> [bind . <4>]
+
+bind . <6> {gr_chmrk 1 1 ; $raster render}
+bind . <KP_Right> [bind . <6>]
+
+
+
+# -----------------------------------------------------------------------
+# Initial user interface state
+# -----------------------------------------------------------------------
+
+.mbar.drawModeMenu.menu invoke 2
+
+# Initially the mouse buttons assumed to all be up
+set b1 0
+set b2 0
+set b3 0
+
+# -----------------------------------------------------------------------
+# Reset state to default
+# -----------------------------------------------------------------------
+proc ResetAll {} {
+    global mode raster 
+
+    # reset user interface state
+    set mode orient
+
+    # reset Gr state
+    gr_reset
+
+    catch {
+        ResetPosition
+        ResetOrientation
+        ResetJoints
+    }
+
+    # post redisplay request
+    $raster render
+}
+
+# -----------------------------------------------------------------------
+# Reset state and enter main Tk event-processing loop
+# -----------------------------------------------------------------------
+
+set comments 0
+
+proc ResetPosition {} {
+    gr_identity :
+    gr_translate : {0 -0 -15}
+#    gr_translate : {-1.5 -7 -6}
+#    gr_rotate :trackball y 70
+
+#gr_translate : {0 -7 -6}
+
+}
+
+proc ResetOrientation {} {
+    gr_identity :trackball
+#    gr_rotate :trackball y 70
+}
+
+proc ResetJoints {} {
+  if {0} {
+    global attributes
+        foreach node [array names attributes] {
+            gr_identity $node:rot            
+        }
+  }
+}
+
+
+
+proc surf {node matetial} {
+    global attributes
+    set attributes($node) $matetial
+#puts "\n\n\ngetting $matetial"
+}
+
+
+proc vToggleDir {nDir} {
+    global nCurrentDir
+    set nCurrentDir [expr $nCurrentDir^$nDir]
+}
+
+set DIR_X 1
+set DIR_Y 2
+set DIR_Z 3
+
+set mainNode :
+
+
+#ResetAll
+
+set spec [list 0.0 0.0 0.0]
+
+
+gr_material black {0.0 0.0 0.0}            $spec 10
+gr_material nose  {0.0 0.0 0.0}            {0.03 0.03 0.03} 10
+gr_material white {1.0 1.0 1.0}            $spec 10
+gr_material blue {0.0 0.0 1.0}             $spec 10
+gr_material green {0.0 1.0 0.0}            $spec 10
+gr_material red {1.0 0.0 0.0}              $spec 10
+gr_material darkred {0.5 0.0 0.0}              $spec 10
+gr_material pink {1.0 0.45 0.45}           $spec 10
+gr_material darkblue {0.0 0.15 0.55}       $spec 10
+gr_material skin {0.5 0.55 0.55}           $spec 50
+gr_material tongue {1 0.75 0.625}          $spec 10
+gr_material watermelon {0.03 0.35 0.03}    $spec 10
+
+
+gr_material patch {0.0 0.0 1.0} {0.0 1.0 0.0} 100
+
+
+set nCurrentDir 0
+
+set lastx 0
+set x 0
+set lasty 0
+set y 0
+
+set translationFactor 100.0
+
+
+#
+# invScale - returns inverse scale list of a scale operation
+#
+
+proc invScale {scaleList} {
+    foreach axis $scaleList {
+        lappend newList [expr 1.0 / $axis]
+    }
+    return $newList
+}
+
+
+set physical :rot:joint:physical
+
+
+gr_transform : trackball
+
+gr_transform :trackball tr
+
+gr_translate :trackball:tr {-1.5 -1 -1.5}
+
+
+set list_of_points [list \
+    {0 0 0}\
+    {1 1 0}\
+    {2 1 0}\
+    {3 0 0}\
+    {0 1 1}\
+    {1 2 1}\
+    {2 2 1}\
+    {3 1 1}\
+    {0 1.2 1.5}\
+    {1 2.2 1.5}\
+    {2 2.2 1.5}\
+    {3 1.2 1.5}\
+    {0 1 2}\
+    {1 2 2}\
+    {2 2 2}\
+    {3 1 2}\
+    {0 0 3}\
+    {1 1 3}\
+    {2 1 3}\
+    {3 0 3}
+]
+
+
+set one 0
+
+if {$one} {
+gr_patch :trackball:tr patch $list_of_points {
+    {0  1  2  3 } \
+    {4  5  6  7 } \
+    {8  9  10 11} \
+    {12 13 14 15} \
+    {16 17 18 19} \
+}
+
+} else {
+gr_patch :trackball:tr patch $list_of_points {
+    {0 4  8  12 16}
+    {1 5  9  13 17}
+    {2 6  10 14 18}
+    {3 7  11 15 19}
+}
+}
+
+lappend attributes(:trackball:tr:patch) patch 1 0
+
+
+#gr_surfaceproperty :trackball:tr:patch patch 
+
+
+#proc buildBodyPart {parentNode node translationFromParent Rotation 
+#internalTranslation scaleList material}
+
+
+foreach node [array names attributes] {
+    gr_surfaceproperty $node [lindex $attributes($node) 0]
+
+}
+
+ResetAll

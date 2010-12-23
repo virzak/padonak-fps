@@ -1,0 +1,950 @@
+#!/bin/csh
+#\
+exec ./sp -f $0 $*
+
+source combobox.tcl
+catch {namespace import combobox::*}
+
+# ========================================================================= #
+#                                 CS 488/688                                #
+#                          Introduction to Graphics                         #
+#                                                                           #
+#                  Assignment 3: Hierarchical Transformations               #
+#                                                                           #
+# ========================================================================= #
+
+# Give application a title
+wm title . "Surface Paster"
+
+# Set desired bounds on overall dimensions
+wm minsize . 200 200
+wm maxsize . 1000 1000
+
+# Desired initial width and height of the OpenGL widget
+set width 640
+set height 480
+
+set out [open main.log w]
+
+set start_clock [clock clicks -milliseconds]
+proc gr_exec {args} {
+  global out start_clock
+  puts $out "[expr [clock clicks -milliseconds]-$start_clock] $args"
+#puts $args
+  eval $args
+}
+
+
+proc gr_redraw {} {
+  global raster
+  gr_exec $raster render
+}
+
+
+proc gr_terminate {} {
+  gr_exec exit
+}
+
+
+# -----------------------------------------------------------------------
+# The menu bar 
+# -----------------------------------------------------------------------
+set menuBar .mbar
+frame .mbar -relief raised -bd 4
+pack .mbar -side top -anchor w -fill x
+
+# -----------------------------------------------------------------------
+# File menu 
+# -----------------------------------------------------------------------
+menubutton .mbar.fileMenu -text File -menu .mbar.fileMenu.menu
+menu .mbar.fileMenu.menu
+
+# Reset Entries entry 
+.mbar.fileMenu.menu add command -label "Reset Position" -accelerator I -command {ResetPosition; gr_redraw}
+.mbar.fileMenu.menu add command -label "Reset Orientation" -accelerator O -command {ResetOrientation; gr_redraw}
+.mbar.fileMenu.menu add command -label "Reset Joints" -accelerator N -command {ResetJoints}
+.mbar.fileMenu.menu add command -label "Reset All" -accelerator R -command {ResetPosition; ResetPosition; ResetOrientation; gr_redraw}
+
+# `Quit' entry 
+.mbar.fileMenu.menu add command -label "Quit" -accelerator Q -command gr_terminate 
+
+
+menubutton .mbar.patchMenu -text "Patch" -menu .mbar.patchMenu.menu
+menu .mbar.patchMenu.menu
+
+.mbar.patchMenu.menu add command -label "Add Patch" -accelerator "Ctrl+N" -command addPatch
+.mbar.patchMenu.menu add separator 
+.mbar.patchMenu.menu add command -label "Set border CPs to Greville" -accelerator "Ctrl+G" -command {gr_exec gr_cp_scheme {} 0 0; gr_redraw}
+.mbar.patchMenu.menu add command -label "Set all CPs to Greville" -command {gr_exec gr_cp_scheme {} 0 1; gr_redraw}
+.mbar.patchMenu.menu add command -label "Spread border CPs evenly" -accelerator "Ctrl+E" -command {gr_exec gr_cp_scheme {} 1 0; gr_redraw}
+.mbar.patchMenu.menu add command -label "Spread all CPs evenly" -command {gr_exec gr_cp_scheme {} 1 1; gr_redraw}
+
+
+
+menubutton .mbar.modeMenu -text "Mode" -menu .mbar.modeMenu.menu
+menu .mbar.modeMenu.menu
+
+.mbar.modeMenu.menu add radio -label "Position/Orientation" -accelerator P -command {} -variable mode -value orient
+.mbar.modeMenu.menu add radio -label "Joints" -accelerator J -command {} -variable mode -value joints
+
+
+
+
+menubutton .mbar.drawModeMenu -text "Draw Mode" -menu .mbar.drawModeMenu.menu
+menu .mbar.drawModeMenu.menu
+
+.mbar.drawModeMenu.menu add radio -label "Wire-Frame" -accelerator W -command {gr_exec gr_mode W; gr_redraw} -variable drawMode -value wire
+.mbar.drawModeMenu.menu add radio -label "Shaded" -accelerator F -command {gr_exec gr_mode F; gr_redraw} -variable drawMode -value face
+.mbar.drawModeMenu.menu add radio -label "Control Net" -accelerator N -command {gr_exec gr_mode C; gr_redraw} -variable drawMode -value net
+.mbar.drawModeMenu.menu add separator
+
+set i 0
+foreach lab [list view_local_frame net_and_curves greville_range view_parent_sfc] values {0 0 0 0} {
+  set d$i $values
+  .mbar.drawModeMenu.menu add check -label $lab -variable d$i -command "gr_toggle $i; \gr_redraw"
+  incr i
+}
+
+
+
+menubutton .mbar.otherMenu -text "Other" -menu .mbar.otherMenu.menu
+menu .mbar.otherMenu.menu
+
+.mbar.otherMenu.menu add checkbutton -label "Approximation" -accelerator A -command {gr_exec gr_approx; gr_redraw} -variable huy2
+
+
+
+
+
+menubutton .mbar.optionsMenu -text "Options" -menu .mbar.optionsMenu.menu
+menu .mbar.optionsMenu.menu
+
+.mbar.optionsMenu.menu add check -label "Circle" -accelerator C -command {gr_exec gr_trackball "" {0 0} {0 0} 0; gr_redraw} -variable circle
+
+
+
+pack .mbar.fileMenu .mbar.patchMenu .mbar.modeMenu .mbar.drawModeMenu .mbar.optionsMenu .mbar.otherMenu -side left
+
+# -----------------------------------------------------------------------
+# Make OpenGL display area using Togl
+# -----------------------------------------------------------------------
+frame .ui -bd 2m -relief sunken
+frame .frame -bd 2m -relief sunken
+pack .frame .ui -side left -expand yes -fill both -padx 2m -pady 2m
+
+# Use a variable to keep track of this widget
+set raster .frame.raster
+
+# Set up the OpenGL rendering area with all the options we'll need
+togl $raster \
+    -rgba true \
+    -redsize 2 \
+    -greensize 2 \
+    -bluesize 2 \
+    -depth true \
+    -depthsize 12 \
+    -double true \
+    -width $width \
+    -height $height
+pack $raster -padx 1m -pady 1m -fill both -expand yes 
+
+
+if {0} {
+frame .bottom
+pack .bottom -fill both -expand yes
+
+entry .bottom.entry -width 30 -textvariable prompt_cmd
+pack .bottom.entry -side top 
+
+bind .bottom.entry <Return> {puts $prompt_cmd}
+bind Entry <KP_Enter> [bind .bottom.entry <Return>]
+}
+
+# -----------------------------------------------------------------------
+# Event Bindings 
+# -----------------------------------------------------------------------
+
+# Mouse button 1 depressed
+bind $raster <Button-1> {
+    if {$comments} {
+        puts stderr "Testing: <Button-1> event"
+    }
+    set b1 1
+}
+
+
+proc switchColor {huy} {
+    global attributes physical raster
+    
+    if {[lindex $attributes($huy) 2] == 0} {
+        set attributes($huy) [eval list [lrange $attributes($huy) 0 1] 1 \
+            [lrange $attributes($huy) 3 end]]
+        gr_exec gr_surfaceproperty $huy selected
+    } else {
+        set attributes($huy) [eval list [lrange $attributes($huy) 0 1] 0 \
+            [lrange $attributes($huy) 3 end]]
+        gr_exec gr_surfaceproperty $huy [lindex $attributes($huy) 0]
+    }
+}
+
+# Mouse button 1 released
+bind $raster <ButtonRelease-1> {
+    if {$comments} {
+        puts stderr "Testing: <ButtonRelease-1> event"
+    }
+    set b1 0
+    if {$mode == "joints"} {
+        set pick [gr_exec gr_pick : [list %x %y]]
+        
+#puts $pick
+
+        if {$pick != ""} {
+          #set pick_list [split $pick ":"]
+          #set main_node [join [lrange $pick_list 0 [expr [llength $pick_list] - 4]] :]
+          set main_node $pick
+        
+#switchColor $main_node
+          if {[lindex $pick 1] != -1} {
+            eval gr_exec gr_select_cp $pick
+          }
+        }
+     
+        gr_redraw
+    }
+}
+
+# Mouse button 2 depressed
+bind $raster <Button-2> {
+    if {$comments} {
+        puts stderr "Testing: <Button-2> event"
+    }
+    set b2 1
+}
+
+# Mouse button 2 released
+bind $raster <ButtonRelease-2> {
+    if {$comments} {
+        puts stderr "Testing: <ButtonRelease-2> event"
+    }
+    set b2 0
+}
+
+# Mouse button 3 depressed
+bind $raster <Button-3> {
+    if {$comments} {
+        puts stderr "Testing: <Button-3> event"
+    }
+    set b3     1
+}
+
+# Mouse button 3 released
+bind $raster <ButtonRelease-3> {
+    if {$comments} {
+        puts stderr "Testing: <ButtonRelease-3> event"
+    }
+    set b3 0
+}
+
+proc rotationNode {name} {
+    return :[join [lrange [split $name :] 1 end-1] : ]
+}
+
+# Mouse moved
+bind $raster <Motion> {
+    if {$comments} {
+        puts stderr "Testing: <Motion> event: %x,%y"
+    }
+
+    set lastx $x
+    set x %x
+    set lasty $y
+    set y %y
+
+    set xm 0
+    set ym 0
+    set zm 0
+
+    set changes [expr $b1 | $b2 | $b3]
+    
+    if {$mode == "orient"} {
+        foreach a [list b1 b2 b3] {
+            if {[set $a]} {
+                set "${a}m" [expr (%x-$lastx)/40.0]
+            } else {
+                set "${a}m" 0
+            }
+        }
+        
+        if {$b1} {
+            set xm [expr (%x-$lastx)/$translationFactor]
+            set ym [expr -(%y-$lasty)/$translationFactor]
+            gr_exec gr_translate $mainNode [list $xm $ym 0]
+        }
+        
+        if {$b2} {
+            set zm [expr -(%y-$lasty)/($translationFactor/2.0)]
+            gr_exec gr_translate $mainNode [list 0 0 $zm]
+        }
+        
+        if {$b3} {
+            gr_exec gr_trackball :trackball [list $lastx [expr 0+$lasty]] \
+                              [list %x [expr 0+%y]] 1
+        }
+        if {$changes} {
+        }
+    } else {
+
+      if {$b2} {
+        if {0} {  
+            #comment this out
+
+            foreach node [array names attributes] {
+                if {[lindex $attributes($node) 2] == 1} {
+                    gr_exec gr_rotate $node:rot x [expr (%y-$lasty)/20.0]
+                }
+            }
+        }
+        
+        set xm [expr (%x-$lastx)/$translationFactor]
+        set ym [expr -(%y-$lasty)/$translationFactor]
+        gr_exec gr_mv_ctrl_pts $mainNode [list $xm $ym 0]        
+
+        
+      }
+        
+      if {$b3} {
+        
+            set zm [expr (%x-$lastx)/$translationFactor]
+            gr_exec gr_mv_ctrl_pts $mainNode [list 0 0 $zm]        
+
+        
+      }
+        
+    }
+    
+    # post redisplay
+    if {$changes} {gr_redraw}
+}
+
+bind . <A> {.mbar.otherMenu.menu invoke 2 }
+bind . <a> [bind . <A>]
+
+bind . <C> {.mbar.optionsMenu.menu invoke 1 }
+bind . <c> [bind . <C>]
+
+bind . <F> {.mbar.drawModeMenu.menu invoke 2 }
+bind . <f> [bind . <F>]
+
+bind . <I> {.mbar.fileMenu.menu invoke 1 }
+bind . <i> [bind . <I>]
+
+bind . <J> {.mbar.modeMenu.menu invoke 2 }
+bind . <j> [bind . <J>]
+
+bind . <N> {.mbar.fileMenu.menu invoke 3 }
+bind . <n> [bind . <N>]
+
+bind . <N> {.mbar.drawModeMenu.menu invoke 3 }
+bind . <n> [bind . <N>]
+
+bind . <Control-n> {.mbar.patchMenu.menu invoke 1}
+bind . <Control-g> {.mbar.patchMenu.menu invoke 3}
+bind . <Control-e> {.mbar.patchMenu.menu invoke 5}
+
+bind . <O> {.mbar.fileMenu.menu invoke 2 }
+bind . <o> [bind . <O>]
+
+bind . <P> {.mbar.modeMenu.menu invoke 1 }
+bind . <p> [bind . <P>]
+
+bind . <Q> {.mbar.fileMenu.menu invoke 5 }
+bind . <q> [bind . <Q>]
+
+bind . <R> {.mbar.fileMenu.menu invoke 4 }
+bind . <r> [bind . <R>]
+
+bind . <S> {gr_exec gr_save patch.png }
+bind . <s> [bind . <S>]
+
+bind . <W> {.mbar.drawModeMenu.menu invoke 1 }
+bind . <w> [bind . <W>]
+
+bind . <Control-r> {gr_record huy}
+
+
+
+
+# -----------------------------------------------------------------------
+# Initial user interface state
+# -----------------------------------------------------------------------
+
+
+# Initially the mouse buttons assumed to all be up
+set b1 0
+set b2 0
+set b3 0
+
+# -----------------------------------------------------------------------
+# Reset state to default
+# -----------------------------------------------------------------------
+proc ResetAll {} {
+    global mode raster 
+
+    # reset user interface state
+    set mode orient
+
+    # reset Gr state
+    gr_exec gr_reset
+
+    catch {
+        ResetPosition
+        ResetOrientation
+        ResetJoints
+    }
+
+    # post redisplay request
+    gr_redraw
+}
+
+# -----------------------------------------------------------------------
+# Reset state and enter main Tk event-processing loop
+# -----------------------------------------------------------------------
+
+set comments 0
+
+proc ResetPosition {} {
+    gr_exec gr_identity :
+    gr_exec gr_translate : {0 -0 -15}
+#    gr_exec gr_translate : {-1.5 -7 -6}
+#    gr_exec gr_translate : {0 -2 0}
+#    gr_exec gr_rotate :trackball y 70
+
+#gr_translate : {0 -7 -6}
+
+}
+
+proc ResetOrientation {} {
+    gr_exec gr_identity :trackball
+    gr_exec gr_rotate :trackball x 20
+}
+
+proc ResetJoints {} {
+  if {0} {
+    global attributes
+        foreach node [array names attributes] {
+            gr_exec gr_identity $node:rot            
+        }
+  }
+}
+
+
+
+proc surf {node matetial} {
+    global attributes
+    set attributes($node) $matetial
+#puts "\n\n\ngetting $matetial"
+}
+
+
+proc vToggleDir {nDir} {
+    global nCurrentDir
+    set nCurrentDir [expr $nCurrentDir^$nDir]
+}
+
+set DIR_X 1
+set DIR_Y 2
+set DIR_Z 3
+
+set mainNode :
+
+
+#ResetAll
+
+set spec [list 0.0 0.0 0.0]
+
+
+
+
+proc mullist {l m} {
+  foreach elem $l {
+    lappend res [expr round($elem*$m)]
+  }
+  return $res
+}
+
+
+proc reg_material {name diff spec phong} {
+
+  global colors
+    
+  set colors($name) [mullist $diff 255.0]
+  
+  gr_exec gr_material $name $diff $spec $phong
+  
+}
+
+
+
+
+.mbar.drawModeMenu.menu invoke 3
+
+#reg_material patch        {0.0 0.0 1.0}       {0.0 1.0 0.0} 100
+reg_material pink         {1.0 0.45 0.45}     $spec 10
+reg_material green        {0.0 1.0 0.0}       $spec 10
+reg_material black        {0.0 0.0 0.0}       $spec 10
+reg_material nose         {0.0 0.0 0.0}       {0.03 0.03 0.03} 10
+reg_material white        {1.0 1.0 1.0}       $spec 10
+reg_material blue         {0.0 0.0 1.0}       $spec 10
+reg_material red          {1.0 0.0 0.0}       $spec 10
+reg_material selected     {0.5 0.0 0.0}       $spec 10
+reg_material darkblue     {0.0 0.15 0.55}     $spec 10
+reg_material skin         {0.5 0.55 0.55}     $spec 50
+reg_material tongue       {1 0.75 0.625}      $spec 10
+reg_material watermelon   {0.03 0.35 0.03}    $spec 10
+
+
+
+set nCurrentDir 0
+
+set lastx 0
+set x 0
+set lasty 0
+set y 0
+
+set translationFactor 100.0
+
+
+#
+# invScale - returns inverse scale list of a scale operation
+#
+
+proc invScale {scaleList} {
+    foreach axis $scaleList {
+        lappend newList [expr 1.0 / $axis]
+    }
+    return $newList
+}
+
+
+set physical :rot:joint:physical
+
+
+gr_exec gr_transform : trackball
+
+
+gr_exec gr_transform :trackball tr
+
+#gr_exec gr_translate :trackball:tr {-1.5 -1 -1.5}
+
+
+
+
+#gr_exec gr_surfaceproperty :trackball:tr:patch patch 
+
+
+#proc buildBodyPart {parentNode node translationFromParent Rotation 
+#internalTranslation scaleList material}
+
+
+foreach node [array names attributes] {
+    gr_exec gr_surfaceproperty $node [lindex $attributes($node) 0]
+
+}
+
+
+source dialog.tcl
+
+set prompt(m) 7
+set prompt(n) 6
+set patch_color patch
+set p_number 0
+
+
+proc getColor {col} {
+  global colors
+  return [eval {format "#%02x%02x%02x"} $colors($col)]
+}
+
+proc gy {disp w col} {
+#puts "calling gy with $disp $w $col"
+  $disp config -background [getColor $col]
+}
+
+
+proc addPatch {} {
+  global colors prompt patch_color p_number parent_patch
+    
+  
+  set patch_color [lindex [array names colors] $p_number]  
+  if {$p_number} {
+    set parent_patch [expr $p_number]
+  }
+
+#puts "$patch_color [array names colors]"
+#puts "$parent_patch [expr $p_number-1]"
+  
+  set f .prompt
+  if [Dialog_Create $f "New Patch" -borderwidth 10] {
+    message $f.msg -text "Add a new Patch" -aspect 1000
+
+    frame $f.size -relief groove -borderwidth 3
+
+    set s [frame $f.size.s]
+    label $s.label -text "M: "
+    entry $s.entry -width 2 -textvariable prompt(m)
+    pack $s.label $s.entry -side left -pady 5  -padx 5  
+    pack $s
+    
+    set t [frame $f.size.t]
+    label $t.label -text "N: "
+    entry $t.entry -width 2 -textvariable prompt(n)
+    pack $t.label $t.entry -side left -pady 5  -padx 5  
+    pack $t
+
+    set b [frame $f.buttons]
+
+    
+#color
+    frame $f.color -relief groove -borderwidth 3
+    label $f.color.label -text "Color: "
+    combobox $f.color.colCombo \
+      -textvariable patch_color \
+      -editable false \
+      -highlightthickness 1 \
+      -command [list gy $f.color.disp]
+    
+    frame $f.color.disp -relief sunken -borderwidth 2 -width 20 -height 20 -background white
+    
+    set widest 0
+    foreach family [lsort [array names colors]] {
+      if {$family != "selected"} {
+	if {[set length [string length $family]] > $widest} {
+	    set widest $length
+	}
+	$f.color.colCombo list insert end $family
+      }
+    }
+    $f.color.colCombo configure -width $widest
+
+    
+    
+    pack $f.color.label $f.color.colCombo $f.color.disp -side left -pady 5 -padx 5
+
+    
+#parent
+    frame $f.parent -relief groove -borderwidth 3
+    label $f.parent.label -text "Parent Patch: "
+    combobox $f.parent.parCombo \
+      -textvariable parent_patch \
+      -editable false \
+      -highlightthickness 1 
+        
+#puts "pnumber = $p_number"
+#for {set i 1} {$i < $p_number} {incr i} {
+#	$f.parent.parCombo list insert end $i
+#   }
+    $f.parent.parCombo configure -width 2
+
+    
+    
+    pack $f.parent.label $f.parent.parCombo -side left -pady 5 -padx 5
+
+    
+
+
+#other
+    
+    pack $f.msg $f.size $f.color $f.parent $f.buttons -side top -fill x
+    pack $f.size $f.color -pady 5
+
+    
+    button $b.ok -text OK -command {set prompt(ok) 1}
+    button $b.cancel -text Cancel -command {set prompt(ok) 0}
+    pack $b.ok -side left
+    pack $b.cancel -side right
+    bind Entry <Return> {set prompt(ok) 1 ; break}
+    bind Entry <KP_Enter> [bind Entry <Return>]
+    bind Entry <Control-c> {set prompt(ok) 0 ; break}
+    bind Entry <Escape> [bind Entry <Control-c>]
+  } else {
+    .prompt.parent.parCombo list insert end [expr $p_number]
+  }
+  gy .prompt.color.disp .prompt.color.colCombo $patch_color
+
+    
+  set prompt(ok) 0
+  Dialog_Wait $f prompt(ok) $f.size.s.entry
+  Dialog_Dismiss $f
+  if {$prompt(ok)} {
+        buildPatch $prompt(m) $prompt(n) $patch_color $parent_patch
+        if {$prompt(m) > 4} {
+          incr prompt(m) -1
+        }
+        if {$prompt(n) > 4} {
+          incr prompt(n) -1
+        }
+  } else {
+  	return {}
+  }
+  
+}
+
+
+
+
+
+
+proc buildPatch {m n c parent} {
+  global attributes
+  global p_number
+  global patches
+  set list_of_points {}
+  
+  for {set i 0} {$i < $m} {incr i} {
+    for {set j 0} {$j < $n} {incr j} {
+      lappend list_of_points \
+        [list [expr $i * ($m.0-3) / ($m.0-1)] 0 [expr $j*($n.0-3)/($n.0-1)]]
+    }
+  }
+  
+  set list_of_vertices {}
+  
+  for {set i 0} {$i < $m} {incr i} {
+    set tmp {}
+    for {set j 0} {$j < $n} {incr j} {
+      lappend tmp [expr $i*$n+$j]
+    }
+    lappend list_of_vertices $tmp
+  }
+    
+  incr p_number
+  gr_exec gr_patch :trackball:tr patch$p_number $list_of_points \
+        $list_of_vertices
+
+#set prev_p_number [expr $p_number - 1]
+  set parenttag {}
+  set node :trackball:tr:patch$p_number
+  if {$parent != "" && $parent != 0} {
+#gr_exec gr_set_patch_parent :trackball:tr:patch$p_number :trackball:tr:patch$prev_p_number
+    gr_exec gr_set_patch_parent $node :trackball:tr:patch$parent
+#set parenttag p$prev_p_number
+    set parenttag p$parent
+  }
+  
+
+  set patches(p$p_number) [list $node $c]
+  addSquare $p_number [getColor $c] $m $n $parenttag
+  lappend attributes($node) $c 1 0
+  gr_exec gr_surfaceproperty $node [lindex $attributes($node) 0]
+  gr_redraw
+}
+
+
+
+set sq_length 10
+set factor 60.0
+
+proc addSquare {number col m n parenttag} {
+  global ui patches sq_length factor
+
+  set tag p$number
+  
+  set c $ui.c
+  set p_coords [$c coords $parenttag]
+  if {$p_coords != ""} {
+    set top_x [lindex $p_coords 0]
+    set top_y [lindex $p_coords 1]
+  } else {
+    set top_x [expr 50] 
+    set top_y [expr 50]
+  }
+  set bot_x [expr $top_x+$factor*($m-3.0)] 
+  set bot_y [expr $top_y+$factor*($n-3.0)]
+  
+  $c create poly $top_x $top_y $top_x $bot_y $bot_x $bot_y $bot_x $top_y -fill $col -tag [list $tag ${tag}_c] -outline black -width 1
+#$c create rect $top_x $top_y $bot_x $bot_y -fill $col -tag [list $tag ${tag}_c]
+  $c create rect [expr $bot_x-$sq_length] [expr $bot_y-$sq_length] \
+    $bot_x $bot_y -fill black -tag [list $tag ${tag}_s]
+  $c create text [expr $top_x+7] [expr $top_y+12] -text $number -tag $tag
+  $c bind $tag <Button-1> [list PatchMark %W %x %y $tag]
+  $c bind $tag <B1-Motion> [list PatchDrag %W %x %y $tag]
+}
+
+set PI 3.1415927
+
+proc get_angle {dx dy} {
+  global PI
+    if {$dx != 0} {
+      set angle [expr atan($dy/-$dx)]
+      if {$dx < 0} {set angle [expr $angle + $PI]}
+    } else {
+      set angle [expr ($dy<0)?$PI/2:-$PI/2];
+    }
+
+    return $angle
+}
+
+
+# Rotation routine
+proc PRotate {init w x y} {
+  global angle prev_angle marked patches PI
+  
+  if {$marked == {}} {
+    return 
+  }
+  
+    if {!$init} {
+      set prev_angle $angle
+    }
+    
+    set last_r_x $x
+    set last_r_y $y
+    set dx [expr $x - [winfo width $w]/2.0]
+    set dy [expr $y - [winfo height $w]/2.0]
+   
+#set angle_rad [get_angle $dx $dy]
+#set angle [expr 180*$angle_rad/$PI]
+    set angle [get_angle $dx $dy]
+
+#puts $angle
+#return 
+      
+    if {!$init} {
+      set angle_difference [expr $angle - $prev_angle]
+#puts "$angle_difference   [lindex $patches($marked) 0]"
+      gr_exec gr_rotate [lindex $patches($marked) 0] y [expr 180.0*$angle_difference/$PI] 1
+      gr_redraw
+
+
+      set coords [$w coords $marked]
+      foreach x {2 4 6} y {3 5 7} {
+        set dx [expr [lindex $coords $x] - [lindex $coords 0]]
+        set dy [expr [lindex $coords $y] - [lindex $coords 1]]
+        set dist [expr sqrt($dx*$dx + $dy*$dy)]
+        
+        set a1 [get_angle $dx $dy]
+        set new_a1 [expr $a1+$angle_difference]
+
+        set new_coords [list [expr [lindex $coords 0] + $dist*cos($new_a1)] [expr [lindex $coords 1] - $dist*sin($new_a1)]]
+
+        set coords [eval {lreplace $coords $x $y} $new_coords]
+      }
+      
+      $w coords $marked $coords
+    }
+    
+    return
+  
+}
+
+
+proc buildUI {} {
+  global ui
+  set c [canvas $ui.c -width 400 -height 400 -background #088]
+  bind $c <Button-2> {PRotate 1 %W %x %y}
+  bind $c <B2-Motion> {PRotate 0 %W %x %y}
+  pack $c 
+  set tag movable1
+}
+
+
+
+proc ToggleDM {} {
+  if {0} {
+  global ui
+    
+  global toolbox
+  if {$toolbox} {
+    toplevel .dm
+    wm transient .dm .
+    wm title .dm "Domain Manager"
+    set ui .dm
+    buildUI
+  } else {
+    destroy .dm
+  }
+  }
+}
+
+set ui .ui
+buildUI
+
+
+set marked {}
+
+
+proc PatchMark {w x y tag} {
+  
+  global dm marked patches sq_length
+  
+  if {[expr [lindex [$w coords $tag] 4]-$x] < $sq_length &&
+      [expr [lindex [$w coords $tag] 5]-$y] < $sq_length
+  } {
+    set pscale 1
+  } else {
+    set pscale 0
+  }
+  
+  set dm($w,$tag) [list $x $y $pscale]
+  if {$marked != {}} {
+    set c [getColor [lindex $patches($marked) 1]]
+    $w itemconfig ${marked}_c -fill $c
+  }
+  $w itemconfig ${tag}_c -fill [getColor selected]
+  set marked ${tag}
+#puts "marked = $marked"
+  
+#puts [$w itemcget $tag -fill]
+}
+
+
+proc PatchDrag {w x y tag} {
+  global dm patches raster factor
+  set prev $dm($w,$tag)
+  set dm($w,$tag) [list $x $y [lindex $prev 2]]
+  set dx [expr $x - [lindex $prev 0]]
+  set dy [expr $y - [lindex $prev 1]]
+
+  if {[lindex $prev 2]} {
+
+    set coords [$w coords $tag]
+      
+    set prev_size [list \
+      [expr [lindex $coords 4] - [lindex $coords 0]] \
+      [expr [lindex $coords 5] - [lindex $coords 1]] \
+    ]
+    
+    set scx [expr ([lindex $prev_size 0] + $dx) / [lindex $prev_size 0]]
+    set scy [expr ([lindex $prev_size 1] + $dy) / [lindex $prev_size 1]]
+     
+
+    set new_x [expr [lindex $coords 4] + $dx]
+    set new_y [expr [lindex $coords 5] + $dy]
+    
+    set coords [lreplace $coords 3 6 $new_y $new_x $new_y $new_x]
+    if {
+      [expr [lindex $coords 4] - [lindex $coords 0]] > 15 &&
+      [expr [lindex $coords 5] - [lindex $coords 1]] > 15 &&
+      [expr $x - [lindex $coords 0]] > 15 &&
+      [expr $y - [lindex $coords 1]] > 15 
+        } {
+      $w coords $tag $coords
+      $w move ${tag}_s $dx $dy
+      gr_exec gr_scale [lindex $patches($tag) 0] [list $scx 1 $scy] 1
+      gr_redraw
+    }
+    
+  } else {
+    $w move $tag $dx $dy
+    set xm [expr $dx/$factor]
+    set ym [expr $dy/$factor]
+    
+    gr_exec gr_translate [lindex $patches($tag) 0] [list $xm 0 $ym] 1
+    gr_redraw
+  }
+}
+
+
+ResetAll
+
+

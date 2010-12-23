@@ -1,0 +1,64 @@
+#/*****************************************************************************
+#/ @(#) $Id: Makefile.in,v 1.9 2003/12/05 16:53:17 virzak Exp $
+#/
+#/  Description:
+#/      Builds output_test program under windows
+#/
+#/  =
+#/
+#/*****************************************************************************
+
+all: output_test
+
+SRCDIR=../../src
+
+CXX = g++
+CXXFLAGS=-g -O2 -I${SRCDIR} -g -Wall -Werror 
+LDFLAGS=-L/usr/X11R6/lib -lGL -lGLU -lXxf86vm
+
+ifeq (${CXX}, icc)
+  CXXFLAGS+=-wd383,981 -unroll
+endif
+ifeq (${CXX}, g++)
+  CXXFLAGS+=-funroll-loops
+endif
+
+
+output_test_OBJS=output_test.o ${SRCDIR}/output.o ${SRCDIR}/window.o \
+    ${SRCDIR}/gr.o ${SRCDIR}/object.o
+
+output_test: ${output_test_OBJS}
+	${CXX} -o $@ ${output_test_OBJS} ${LDFLAGS}
+
+clean:
+	-rm -rf ${output_test_OBJS} core *~
+
+distclean: clean
+	-rm -rf output_test
+
+
+#/
+#/ @(#) $Log: Makefile.in,v $
+#/ @(#) Revision 1.9  2003/12/05 16:53:17  virzak
+#/ @(#) Added object.o to the compilation
+#/ @(#)
+#/ @(#) Revision 1.8  2003/09/30 06:47:46  virzak
+#/ @(#) changed CXXFLAGS to -g -O2
+#/ @(#)
+#/ @(#) Revision 1.7  2003/09/10 03:34:00  virzak
+#/ @(#) Since all the errors are fixed, using -Werror option
+#/ @(#)
+#/ @(#) Revision 1.6  2003/09/05 20:56:31  virzak
+#/ @(#) Using g++
+#/ @(#)
+#/ @(#) Revision 1.5  2003/09/04 02:42:29  virzak
+#/ @(#) Added distclean target
+#/ @(#)
+#/ @(#) Revision 1.4  2003/09/02 03:59:19  virzak
+#/ @(#) Changed the SRC directory
+#/ @(#)
+#/ @(#) Revision 1.3  2003/08/30 07:38:45  virzak
+#/ @(#) Added headers
+#/ @(#)
+#/
+

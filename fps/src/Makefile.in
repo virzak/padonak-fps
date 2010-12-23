@@ -1,0 +1,144 @@
+#/*****************************************************************************
+#/ @(#) $Id: Makefile.in,v 1.30 2003/12/05 16:55:00 virzak Exp $ 
+#/ 
+#/  Description: 
+#/      This file is responsible for building the executable for linux
+#/
+#/  =
+#/
+#/*****************************************************************************
+
+
+CXX = @CXX@
+
+
+CXXFLAGS=@CXXFLAGS@
+LDFLAGS=-L/usr/X11R6/lib -lGL -lGLU -lXxf86vm -ljpeg -lpatch -lsubdiv -lgrutil @LDFLAGS@
+
+ifeq (${CONF}, release) 
+  ifeq (${CXX},icc)
+    LDFLAGS+=-static-libcxa
+  endif
+else
+  CXXFLAGS+=-g
+
+  ifeq (${CXX},icc)
+    CXXFLAGS+=-Wall -Werror -wd981,383 -unroll
+  endif
+  ifeq (${CXX},g++)
+    CXXFLAGS+=-Wall -Werror -funroll-loops
+  endif
+  ifeq (${CXX},CC)
+    CXXFLAGS+=-fullwarn -LANG:std
+  endif
+	  
+endif
+
+CXXFLAGS+=${CXXFLAGSEXTRA}
+
+OBJS = gr.o world.o polygon.o wall.o object.o engine.o stain.o player.o ui.o \
+        timer.o window.o output.o xray.o textures.o camera.o background.o \
+        light.o objgroups.o mobject.o
+
+all: fps
+
+fps: ${OBJS}
+	$(CXX) ${OBJS} -o $@ ${LDFLAGS} 
+        
+count:
+	grep -E -v '^(.*@\(#\).*)*[[:space:]]*$$' *.cpp *.h | wc
+
+status:
+	cvs status | grep Locally
+
+clean:
+	-rm -f core *.o *~
+        
+distclean: clean
+	-rm -rf fps
+
+
+#/
+#/ @(#) $Log: Makefile.in,v $
+#/ @(#) Revision 1.30  2003/12/05 16:55:00  virzak
+#/ @(#) Added subdiv and patches as well as object.o
+#/ @(#)
+#/ @(#) Revision 1.29  2003/10/21 04:23:37  virzak
+#/ @(#) Added another object to be compiled
+#/ @(#)
+#/ @(#) Revision 1.28  2003/10/18 00:22:22  virzak
+#/ @(#) Added mobject.o
+#/ @(#)
+#/ @(#) Revision 1.27  2003/09/30 06:47:45  virzak
+#/ @(#) changed CXXFLAGS to @CXXFLAGS@
+#/ @(#)
+#/ @(#) Revision 1.26  2003/09/17 07:34:10  virzak
+#/ @(#) Added objgroups.o to compilation
+#/ @(#)
+#/ @(#) Revision 1.25  2003/09/13 00:10:36  virzak
+#/ @(#) Fixed for gcc release
+#/ @(#)
+#/ @(#) Revision 1.24  2003/09/11 19:38:24  virzak
+#/ @(#) Added -Werror to g++, since now fixed all outstanding warnings
+#/ @(#)
+#/ @(#) Revision 1.23  2003/09/05 20:56:30  virzak
+#/ @(#) Using @CXX@
+#/ @(#)
+#/ @(#) Revision 1.22  2003/09/04 01:07:50  virzak
+#/ @(#) Added distclean target
+#/ @(#)
+#/ @(#) Revision 1.21  2003/08/29 08:07:23  virzak
+#/ @(#) Added light
+#/ @(#)
+#/ @(#) Revision 1.20  2003/08/27 22:12:27  virzak
+#/ @(#) Addded background class to the configuration
+#/ @(#)
+#/ @(#) Revision 1.19  2003/08/26 05:38:32  virzak
+#/ @(#) gui_X.o >> window.o
+#/ @(#)
+#/ @(#) Revision 1.18  2003/08/25 19:56:06  virzak
+#/ @(#) Added polygon.o to compilation
+#/ @(#)
+#/ @(#) Revision 1.17  2003/08/24 06:14:52  virzak
+#/ @(#) Changed order of objects to build the most usable objects first
+#/ @(#) This is done in order compile unstable files first.
+#/ @(#)
+#/ @(#) Revision 1.16  2003/08/20 02:35:05  virzak
+#/ @(#) Added -Werror to icc configuration
+#/ @(#)
+#/ @(#) Revision 1.15  2003/08/14 01:12:33  virzak
+#/ @(#) Disabled icc remark 383 about creating temporary variable while
+#/ @(#) passing a constant by reference
+#/ @(#)
+#/ @(#) Revision 1.14  2003/08/05 18:16:53  virzak
+#/ @(#) Added MIPSpro C++ compiler support, however windowing interface needs
+#/ @(#) to be written as IRIX doesn't have XF86VIDMODE
+#/ @(#)
+#/ @(#) Revision 1.13  2003/08/04 07:45:27  virzak
+#/ @(#) Added -ljpeg to compilation to support jpeg texture mapping
+#/ @(#)
+#/ @(#) Revision 1.12  2003/08/02 20:11:38  virzak
+#/ @(#) Added camera.o to the compilation
+#/ @(#)
+#/ @(#) Revision 1.11  2003/07/12 22:26:31  virzak
+#/ @(#) Small fixes
+#/ @(#)
+#/ @(#) Revision 1.10  2003/07/11 01:30:21  virzak
+#/ @(#) Added status target
+#/ @(#)
+#/ @(#) Revision 1.9  2003/07/10 18:24:29  virzak
+#/ @(#) Added line cointing target "count"
+#/ @(#)
+#/ @(#) Revision 1.8  2003/07/09 04:59:35  virzak
+#/ @(#) added optimisation
+#/ @(#)
+#/ @(#) Revision 1.7  2003/07/04 18:57:02  virzak
+#/ @(#) Make the stain more realistic
+#/ @(#)
+#/ @(#) Revision 1.6  2003/07/03 22:00:10  virzak
+#/ @(#) Disabled annoying icc warning -wd981 about order of evaluation of operands
+#/ @(#) Added -static-libcxa that is required to run on platforms without icc
+#/ @(#)
+#/
+
+

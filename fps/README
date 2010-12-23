@@ -1,0 +1,44 @@
+Readme for Padonak FPS
+==========================================================
+
+Windows Requirements:
+  - OpenGL headers and libraries (Available with any modern version of Windows)
+
+  Additional requirements for compiling:
+  - Microsoft Visual Studio or equivalent
+
+
+
+Linux Requirements:
+  - OpenGL headers and libraries 
+  - Xserver with GLX and XF86VidMode extensions 
+  - libjpeg
+
+  Additional requirements for compiling:
+  - gcc or icc
+
+
+
+Controls (This section will be inserted into the game later)
+--------
+
+ESC - Exit
+W, Up Arrow - Move Forward
+S, Down Arrow - Move Back
+A - Move Left
+D - Move Right
+B1 - Shoot
+B3 - Jump
+M - Toggle Mirror
+F1 - Full Screen
+F3 - Pause
+O - Fly
+TAB - Change Camera view
+T - switch to stencil mirror (if stencil-buffer 
+      hardware support is not available, 
+      this might slow down the execution)
+PgUp - Look up
+PgDn - Look down
+Left Arrow - Look left
+Right Arrow - Look right
+

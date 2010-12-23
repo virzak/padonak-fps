@@ -1,0 +1,21 @@
+FIX:
+  - Fix for slower cards (DONE)
+  - Fix the lighting
+  - Improve collision detection (better reaction to corners)
+  - Make sure camera is not behind a polygon when at the distant mode
+
+FEATURES:
+  - Improve scripting
+  - Use MD3 or other nice format models
+  - Implement Octree
+  - Fog
+  - Cut the stains where needed (On the edges of the polygon)
+  - Add surface pasting
+  - Add subdivision surfaces
+  - Add a 2D menu
+  - Add Cg Shaders
+  - Implement elastic collisions
+  - Implement different weapons
+  - Come up with a tool to generate levels
+  - Display credits on exiting
+  - Make sure Jumping power is controlled

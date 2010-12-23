@@ -1,0 +1,41 @@
+# CVS checkout metadata (the CVS repository itself was not recovered)
+CVS/
+.#*
+
+# Visual Studio build output and IDE state
+Debug/
+Release/
+/fps/ipch/
+/fps/_ReSharper.fps/
+/fps/_UpgradeReport_Files/
+/fps/UpgradeLog.XML
+*.sdf
+*.ncb
+*.suo
+*.suo.old
+*.user
+
+# Unix build output
+*.o
+*.a
+/surface_paster_cpp/ui_tcltk/sp
+/fps/build-linux/
+/fps/fps-linux
+
+# autoconf run output
+/fps/autom4te.cache/
+/fps/config.log
+/fps/config.status
+
+# Prebuilt release archives
+/fps/fps-bin-win.*
+
+# Editor backups, crash dumps and run logs
+*~
+*.stackdump
+/surface_paster_cpp/main.log
+/surface_paster_cpp/ui_tcltk/main.log
+
+# Prebuilt libjpeg the Windows build links against (a global *.lib rule
+# would otherwise drop it)
+!/fps/jpeg/jpeg.lib

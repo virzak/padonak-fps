@@ -1,0 +1,16 @@
+BUGS:
+  Fix the point selection             (IN PROGRESS)
+  Fix UI
+    - Scale/Rotate Parent
+    - Rotation
+
+
+FEATURES:
+  Implement Rotatoion                 (DONE)
+  Implement Hierarchy                 (DONE)
+  Model                               (DONE)
+  Least squares
+  Knot insertion
+  Movie generation                    (DONE)
+  Different control-point schemes     (DONE)
+  Website                             (IN PROGRESS)
