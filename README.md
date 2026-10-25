@@ -9,26 +9,45 @@ Old OpenGL projects from 2003-2010, recovered from CVS working copies (the CVS r
 
 `fps` compiles sources from the other three directories directly, so they are kept together in one repository.
 
-## Build and run on Linux or WSLg
+The build is CMake (`CMakeLists.txt` and `CMakePresets.json` at the root). Build output goes to `artifacts/<preset>/`. The game loads `data/` relative to the current directory, so run it from `fps`.
 
-Install a compiler and the OpenGL, X11 and libjpeg development packages (Ubuntu):
+## Build and run on Windows
 
-```sh
-sudo apt-get install build-essential libgl1-mesa-dev libglu1-mesa-dev \
-  libx11-dev libxxf86vm-dev libxt-dev libjpeg-dev
+Requires Visual Studio 2026 with the "Desktop development with C++" workload, which includes CMake and vcpkg. vcpkg builds libjpeg-turbo on the first configure.
+
+From a Developer PowerShell for VS 2026:
+
+```powershell
+cmake --preset windows
+cmake --build --preset windows
+cd fps
+..\artifacts\windows\Release\fps.exe
 ```
 
-Then, from `fps` (the game loads `data/` relative to the current directory):
+To debug, open the generated `artifacts\windows\OldGfx.slnx` after the configure step; `fps` is the startup project and runs in the `fps` directory.
+
+Outside a developer prompt, set `VCPKG_ROOT` to the vcpkg that ships with Visual Studio (`<VS install>\VC\vcpkg`) or to your own vcpkg clone first.
+
+## Build and run on Linux or WSLg
+
+Install a compiler, CMake and the OpenGL, X11 and libjpeg development packages (Ubuntu):
 
 ```sh
+sudo apt-get install build-essential cmake libgl1-mesa-dev libglu1-mesa-dev \
+  libx11-dev libxext-dev libxxf86vm-dev libxt-dev libjpeg-dev
+```
+
+Then:
+
+```sh
+cmake --preset linux
+cmake --build --preset linux
 cd fps
-make -f Makefile.wsl run
+../artifacts/linux/fps
 ```
 
 On Windows, run this inside a WSL distribution such as `wsl -d Ubuntu`; the window opens on the Windows desktop through WSLg.
 
-## Build on Windows
+## Original build files
 
-Open `fps/fps.sln` in Visual Studio. The project still has include paths from the original machines (`E:\cygwin\home\virzak\...`, `C:\Code\...`) and has not been updated to build from this layout.
-
-The original autoconf build (`fps/configure`, `fps/Makefile.in`) expects `libgrutil`, `libsubdiv` and `libpatch` to be built and installed first; `Makefile.wsl` replaces it.
+The original autoconf build (`fps/configure`, `fps/Makefile.in`) is still in the tree but expects `libgrutil`, `libsubdiv` and `libpatch` to be built and installed first. The Visual Studio 2010 project and its 32-bit `jpeg.lib` were replaced by CMake and are in the git history.

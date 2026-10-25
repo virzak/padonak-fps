@@ -55,7 +55,9 @@ endif()
 if(MSVC)
   target_compile_options(fps PRIVATE /permissive /W1)
 else()
-  # 2003-era code: accept its non-standard constructs quietly.
+  # 2003-era code: accept its non-standard constructs quietly. It also
+  # relies on pre-C++11 template name lookup.
+  set_target_properties(fps PROPERTIES CXX_STANDARD 98 CXX_EXTENSIONS ON)
   target_compile_options(fps PRIVATE -fpermissive -w)
 endif()
 
@@ -63,3 +65,4 @@ endif()
 set_target_properties(fps PROPERTIES
   VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/fps"
 )
+set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT fps)

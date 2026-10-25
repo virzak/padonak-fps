@@ -36,9 +36,5 @@ Release/
 /surface_paster_cpp/main.log
 /surface_paster_cpp/ui_tcltk/main.log
 
-# Prebuilt libjpeg the Windows build links against (a global *.lib rule
-# would otherwise drop it)
-!/fps/jpeg/jpeg.lib
-
 # CMake build trees
 /artifacts/
