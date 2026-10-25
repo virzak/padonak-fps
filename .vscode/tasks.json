@@ -1,0 +1,97 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "configure",
+      "detail": "CMake configure (vcpkg installs SDL3 and libjpeg-turbo on Windows)",
+      "type": "process",
+      "windows": {
+        "command": "powershell",
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "${workspaceFolder}/scripts/vsdev.ps1",
+          "cmake",
+          "--preset",
+          "windows"
+        ]
+      },
+      "linux": {
+        "command": "cmake",
+        "args": ["--preset", "linux"]
+      },
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "build",
+      "detail": "Release build (RelWithDebInfo on Linux)",
+      "type": "process",
+      "dependsOn": "configure",
+      "windows": {
+        "command": "powershell",
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "${workspaceFolder}/scripts/vsdev.ps1",
+          "cmake",
+          "--build",
+          "--preset",
+          "windows"
+        ]
+      },
+      "linux": {
+        "command": "cmake",
+        "args": ["--build", "--preset", "linux", "--parallel"]
+      },
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$msCompile", "$gcc"]
+    },
+    {
+      "label": "build debug",
+      "detail": "Debug build for the debugger (Windows; Linux builds RelWithDebInfo)",
+      "type": "process",
+      "dependsOn": "configure",
+      "windows": {
+        "command": "powershell",
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "${workspaceFolder}/scripts/vsdev.ps1",
+          "cmake",
+          "--build",
+          "--preset",
+          "windows-debug"
+        ]
+      },
+      "linux": {
+        "command": "cmake",
+        "args": ["--build", "--preset", "linux", "--parallel"]
+      },
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "problemMatcher": ["$msCompile", "$gcc"]
+    },
+    {
+      "label": "run",
+      "detail": "Build and start the game (it loads data/ from fps/)",
+      "type": "process",
+      "dependsOn": "build",
+      "windows": {
+        "command": "${workspaceFolder}/artifacts/windows/Release/fps.exe"
+      },
+      "linux": {
+        "command": "${workspaceFolder}/artifacts/linux/fps"
+      },
+      "options": { "cwd": "${workspaceFolder}/fps" },
+      "problemMatcher": []
+    }
+  ]
+}

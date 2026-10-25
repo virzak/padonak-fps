@@ -48,6 +48,12 @@ cd fps
 
 On Windows, run this inside a WSL distribution such as `wsl -d Ubuntu`; the window opens on the Windows desktop through WSLg.
 
+## VS Code
+
+Open the repository folder; VS Code recommends the C/C++ and EditorConfig extensions. Tasks (Terminal > Run Task) are `configure`, `build` (the default build task, Ctrl+Shift+B), `build debug` and `run`. On Windows they run through `scripts/vsdev.ps1`, which enters the Visual Studio developer environment first, so no developer prompt is needed.
+
+To debug, pick `fps (Windows)` or `fps (Linux / WSL)` in Run and Debug and press F5. Both build first and start the game in `fps`. The Linux configuration needs `gdb` (`sudo apt-get install gdb`); in WSL, open the folder with the WSL extension.
+
 ## Original build files
 
 The original autoconf build (`fps/configure`, `fps/Makefile.in`) is still in the tree but expects `libgrutil`, `libsubdiv` and `libpatch` to be built and installed first. The Visual Studio 2010 project and its 32-bit `jpeg.lib` were replaced by CMake and are in the git history.

@@ -38,3 +38,9 @@ Release/
 
 # CMake build trees
 /artifacts/
+
+# VS Code: share tasks, launch and extension recommendations only
+/.vscode/*
+!/.vscode/tasks.json
+!/.vscode/launch.json
+!/.vscode/extensions.json
