@@ -9,7 +9,7 @@ Padonak FPS, a small OpenGL first-person shooter from 2003, and the graphics lib
 
 `fps` compiles sources from the other three directories directly, so they are kept together in one repository.
 
-The game uses SDL3 for its window, input and OpenGL context. The build is CMake (`CMakeLists.txt` and `CMakePresets.json` at the root). Build output goes to `artifacts/<preset>/`. The game loads `data/` relative to the current directory, so run it from `fps`.
+The game uses SDL3 for its window, input and OpenGL context, and draws with OpenGL 3.3 core through a small shader-based renderer (`fps/src/render.cpp`) that keeps the shape of the fixed-function API the 2003 code was written against. The build is CMake (`CMakeLists.txt` and `CMakePresets.json` at the root). Build output goes to `artifacts/<preset>/`. The game loads `data/` relative to the current directory, so run it from `fps`.
 
 ## Build and run on Windows
 

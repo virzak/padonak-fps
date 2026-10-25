@@ -16,8 +16,6 @@
 #include "stdafx.h"
 #endif
 
-#include <GL/gl.h>
-#include <GL/glu.h>
 #include "textures.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -124,22 +122,21 @@ bool loadGLTextures(char * filename, GLuint *texture)  /* Load Bitmaps And Conve
     glGenTextures(3, &texture[0]);   /* create three textures */
     glBindTexture(GL_TEXTURE_2D, texture[0]);
     /* actually generate the texture */
-    glTexImage2D(GL_TEXTURE_2D, 0, 3, texti->sizeX, texti->sizeY, 0,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, texti->sizeX, texti->sizeY, 0,
     GL_RGB, GL_UNSIGNED_BYTE, texti->data);
     /* use no filtering */
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     /* the second texture */
     glBindTexture(GL_TEXTURE_2D, texture[1]);
-    glTexImage2D(GL_TEXTURE_2D, 0, 3, texti->sizeX, texti->sizeY, 0,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, texti->sizeX, texti->sizeY, 0,
     GL_RGB, GL_UNSIGNED_BYTE, texti->data);
     /* use linear filtering */
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     /* the third texture */
     glBindTexture(GL_TEXTURE_2D, texture[2]);
-    gluBuild2DMipmaps(GL_TEXTURE_2D, 3, texti->sizeX,
-    texti->sizeY, GL_RGB, GL_UNSIGNED_BYTE, texti->data);
+    rnd::texImageMipmapped(texti->sizeX, texti->sizeY, 3, texti->data);
     /* use mipmapping */
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
     GL_LINEAR_MIPMAP_NEAREST);
@@ -604,8 +601,8 @@ void CreateTexture(unsigned int textureArray[], char * strFileName, int textureI
     textureType = GL_RGBA;
     
   // Build Mipmaps (builds different versions of the picture for distances - looks better)
-  gluBuild2DMipmaps(GL_TEXTURE_2D, pImage->channels, pImage->sizeX, 
-            pImage->sizeY, textureType, GL_UNSIGNED_BYTE, pImage->data);
+  rnd::texImageMipmapped(pImage->sizeX, pImage->sizeY, pImage->channels,
+            pImage->data);
 
 /////// * /////////// * /////////// * NEW * /////// * /////////// * /////////// *
 
@@ -691,8 +688,7 @@ void CTexture::onCreateWindow() {
     glBindTexture(GL_TEXTURE_2D, m_texture[0]);
     /* actually generate the texture */
     if (type == F_BMP) {
-      gluBuild2DMipmaps(GL_TEXTURE_2D, 3, pImage->sizeX, pImage->sizeY, 
-          GL_RGB, GL_UNSIGNED_BYTE, pImage->data);
+      rnd::texImageMipmapped(pImage->sizeX, pImage->sizeY, 3, pImage->data);
     } else if (type == F_TGA) {
   int textureType = GL_RGB;
 
@@ -701,13 +697,11 @@ void CTexture::onCreateWindow() {
     textureType = GL_RGBA;
     
   // Build Mipmaps (builds different versions of the picture for distances - looks better)
-  gluBuild2DMipmaps(GL_TEXTURE_2D, ((tImageTGA *)pImage)->channels, 
-            pImage->sizeX, pImage->sizeY, textureType, 
-            GL_UNSIGNED_BYTE, pImage->data);
+  rnd::texImageMipmapped(pImage->sizeX, pImage->sizeY,
+            ((tImageTGA *)pImage)->channels, pImage->data);
 
     } else if (type == F_JPG) {
-  gluBuild2DMipmaps(GL_TEXTURE_2D, 3, pImage->sizeX, pImage->sizeY, 
-            GL_RGB, GL_UNSIGNED_BYTE, pImage->data);
+  rnd::texImageMipmapped(pImage->sizeX, pImage->sizeY, 3, pImage->data);
 
     }
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);

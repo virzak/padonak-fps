@@ -17,8 +17,7 @@
 #include "stdafx.h"
 #endif
 
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include "render.h"
 #include "util.h"
 #include "timer.h"
 #include "output.h"

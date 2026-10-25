@@ -11,13 +11,12 @@
 
 #include "camera.h"
 #include "engine.h"
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include "render.h"
 
 
 inline void gluLookAtv (const GrPoint3D & eye, const GrPoint3D & center, const GrVector3D & up) {
 
-  gluLookAt(  eye.x(), eye.y(), eye.z(),
+  rnd::lookAt(eye.x(), eye.y(), eye.z(),
               center.x(), center.y(), center.z(),
                up.x(), up.y(), up.z());
 

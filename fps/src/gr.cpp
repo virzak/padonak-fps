@@ -14,19 +14,15 @@
 
 
 #include "gr.h"
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include "render.h"
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
 
 CGraphics * CGraphics::m_instance = NULL;
 
-GLUquadricObj * CGraphics::m_quad;
 
-
-static GLfloat lightAmbient[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-static GLfloat lightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+/* ambient 0.5 and diffuse 1.0 are built into the renderer's shader */
 static GLfloat lightPosition[] = { 0.0f, 3.0f, 2.0f, 1.0f };
 
 /* general OpenGL deinitialization function */
@@ -36,27 +32,18 @@ void CGraphics::deinitGL() {
 /* general OpenGL initialization function */
 void CGraphics::initGL()
 {
-  glEnable (GL_CULL_FACE);
+  rnd::enable (GL_CULL_FACE);
   glDisable (GL_DITHER); /*WTF?*/
-  glEnable(GL_TEXTURE_2D);     /* enable texture mapping */
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE);  /* blending function */
-  glShadeModel(GL_SMOOTH);
+  rnd::enable(rnd::TEXTURE_2D);     /* enable texture mapping */
+  rnd::blendFunc(GL_SRC_ALPHA, GL_ONE);  /* blending function */
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-  glClearDepth(1.0f);
-  glEnable(GL_DEPTH_TEST);
-  glDepthFunc(GL_LESS);
-  glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+  rnd::enable(GL_DEPTH_TEST);
+  rnd::depthFunc(GL_LESS);
   /* set up our lighting */
-  glEnable(GL_LIGHT0);
-  glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
-  glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
-  glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-  //glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 360);
-  
-  glEnable(GL_COLOR_MATERIAL);
+  rnd::lightPosition(lightPosition);
   
   if (m_light)
-    glEnable(GL_LIGHTING);
+    rnd::enable(rnd::LIGHTING);
   /* we use resizeGLScene once to set up our initial perspective */
   //resizeGLScene(window->gl_win.width, window->gl_win.height);
   glFlush();

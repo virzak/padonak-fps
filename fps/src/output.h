@@ -17,7 +17,6 @@
 #endif
 
 
-#include <GL/gl.h>
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -60,8 +59,6 @@ class COutput {
     unsigned int m_lines;
     void (*m_outputFunction)(const string &);
     
-    GLuint m_base;
-
     // Constructor
     COutput(unsigned int lines,  unsigned int chars_in_line);
 
@@ -114,11 +111,6 @@ class COutput {
     
     void setOutputFunction(void (*outputFunction)(const string &)) {
       m_outputFunction = outputFunction;
-    }
-    
-    void setBase(GLuint base) {
-      m_base = base;
-      glListBase(base);
     }
     
     ~COutput();

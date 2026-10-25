@@ -16,42 +16,42 @@
 #include "stdafx.h"
 #endif
 
-#include <GL/gl.h>
+#include "render.h"
 #include "engine.h"
 
 void C3DObjects::onDraw() const {
   // set up for projective drawing to draw 3D objects
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluPerspective(gr->getFOV(), (GLdouble)window->gl_win.width / (GLdouble)window->gl_win.height, 0.1f, 100.0f);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+  rnd::matrixMode(rnd::PROJECTION);
+  rnd::loadIdentity();
+  rnd::perspective(gr->getFOV(), (double)window->gl_win.width / (double)window->gl_win.height, 0.1f, 100.0f);
+  rnd::matrixMode(rnd::MODELVIEW);
+  rnd::loadIdentity();
 }
 
 
 static void drawCircle() {
   double chf = 0.05; /* crosshair factor */
   double radius = window->gl_win.width < window->gl_win.height ? (double)window->gl_win.width * chf : (double)window->gl_win.height * chf;
-  glPushMatrix();
-  glTranslated((double)window->gl_win.width * 0.5, (double)window->gl_win.height * 0.5, 0);
-  glBegin(GL_LINE_LOOP);
+  rnd::pushMatrix();
+  rnd::translate((double)window->gl_win.width * 0.5, (double)window->gl_win.height * 0.5, 0);
+  rnd::begin(rnd::LINE_LOOP);
   for (int i=0; i<40; ++i) {
     double cosine = radius * cos(i*2*M_PI/40);
     double sine = radius * sin(i*2*M_PI/40);
-    glVertex2d(cosine, sine);
+    rnd::vertex(cosine, sine);
   }
-  glEnd();
-  glPopMatrix();
+  rnd::end();
+  rnd::popMatrix();
 }
 
 
 
 void CGUI2D::drawHelpBar() const {
 
-  glColor4f(0, 0, 0, 0.5);
-  glRecti(0, 20, window->gl_win.width, 0);  
+  rnd::color(0, 0, 0, 0.5);
+  rnd::rect(0, 20, window->gl_win.width, 0);  
 
-  glColor3f(1, 0, 0);
+  rnd::color(1, 0, 0);
   
   double speed = sqrt(cp->m_velocity.sqmag());
   *output <<
@@ -69,26 +69,26 @@ void CGUI2D::drawHelpBar() const {
 
 void CGUI2D::onDraw() const {
   // set up for orthogonal drawing to draw 2D objects on screen 
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
+  rnd::matrixMode(rnd::PROJECTION);
+  rnd::loadIdentity();
   glViewport(0, 0, window->gl_win.width, window->gl_win.height);
-  glOrtho(0.0, (double)window->gl_win.width, 0.0, (double)window->gl_win.height, -0.1, 0.1);
+  rnd::ortho(0.0, (double)window->gl_win.width, 0.0, (double)window->gl_win.height, -0.1, 0.1);
 
   // change to model view for drawing
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+  rnd::matrixMode(rnd::MODELVIEW);
+  rnd::loadIdentity();
   
   
-  glColor4d (1, 1, 1, 1);
+  rnd::color (1, 1, 1, 1);
 
-  glPushAttrib (GL_ENABLE_BIT | GL_CURRENT_BIT);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_DEPTH_TEST);
+  rnd::pushAttrib (rnd::ENABLE_BIT | rnd::CURRENT_BIT);
+    rnd::disable(rnd::LIGHTING);
+    rnd::disable(GL_DEPTH_TEST);
 
-    glEnable (GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_TEXTURE_2D);
-    glDisable (GL_CULL_FACE);
+    rnd::enable (GL_BLEND);
+    rnd::blendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    rnd::disable(rnd::TEXTURE_2D);
+    rnd::disable (GL_CULL_FACE);
 
     /* Cross hair */
     drawCircle();
@@ -97,15 +97,15 @@ void CGUI2D::onDraw() const {
     drawHelpBar();
 
     if (output_toggle) {
-      glColor4f(0, 0, 0, 0.5);
-      glRecti(0, window->gl_win.height, window->gl_win.width, window->gl_win.height/2);
+      rnd::color(0, 0, 0, 0.5);
+      rnd::rect(0, window->gl_win.height, window->gl_win.width, window->gl_win.height/2);
     
-      glColor3f(1, 0, 1);
+      rnd::color(1, 0, 1);
       output->draw(10, window->gl_win.height - 20, 20);
     }
 
 
-  glPopAttrib();
+  rnd::popAttrib();
 
 
 }

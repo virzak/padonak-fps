@@ -12,7 +12,7 @@
 #ifndef __TEXTURE_H__
 #define __TEXTURE_H__
 
-#include <GL/gl.h>
+#include "render.h"
 #include <map>
 #include "app.h"
 #include "output.h"
@@ -49,7 +49,7 @@ class CTexture : public CWindowDependent {
     ~CTexture() {}
 
     void glBind() const {
-      if (m_success) glBindTexture(GL_TEXTURE_2D, m_texture[0]);
+      if (m_success) rnd::bindTexture(m_texture[0]);
     }
     
     virtual void onCreateWindow();

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(PadonakFps LANGUAGES CXX)
+project(PadonakFps LANGUAGES C CXX)
 
 # fps compiles the grutil sources directly. The subdiv and
 # surface_paster_cpp libraries are kept in the repository but the game no
@@ -19,6 +19,7 @@ add_executable(fps
   fps/src/output.cpp
   fps/src/player.cpp
   fps/src/polygon.cpp
+  fps/src/render.cpp
   fps/src/stain.cpp
   fps/src/textures.cpp
   fps/src/timer.cpp
@@ -28,20 +29,23 @@ add_executable(fps
   fps/src/world.cpp
   fps/src/xray.cpp
   grutil/src/util.cpp
+  third_party/glad/src/gl.c
 )
 
 target_include_directories(fps PRIVATE
   fps
   fps/src
   grutil/include
+  third_party/glad/include
 )
 # grutil's few fixed-function drawing helpers are not used by the game
 target_compile_definitions(fps PRIVATE GRUTIL_NO_GL)
 
+# OpenGL itself is loaded at run time through SDL and glad, so it is not
+# linked.
 find_package(SDL3 REQUIRED CONFIG)
-find_package(OpenGL REQUIRED)
 find_package(JPEG REQUIRED)
-target_link_libraries(fps PRIVATE SDL3::SDL3 OpenGL::GL OpenGL::GLU JPEG::JPEG)
+target_link_libraries(fps PRIVATE SDL3::SDL3 JPEG::JPEG)
 
 if(WIN32)
   set_target_properties(fps PROPERTIES WIN32_EXECUTABLE ON)
@@ -57,7 +61,7 @@ else()
   # 2003-era code: accept its non-standard constructs quietly. It also
   # relies on pre-C++11 template name lookup.
   set_target_properties(fps PROPERTIES CXX_STANDARD 98 CXX_EXTENSIONS ON)
-  target_compile_options(fps PRIVATE -fpermissive -w)
+  target_compile_options(fps PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fpermissive> -w)
 endif()
 
 # The game loads data/ relative to the working directory.

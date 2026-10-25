@@ -12,7 +12,6 @@
 #ifndef __GR_H__
 #define __GR_H__
 
-#include <GL/glu.h>
 #include <stdlib.h>
 #include "object.h"
 #include "app.h"
@@ -23,15 +22,11 @@ class CGraphics : public CWindowDependent {
     // Singleston variable
     static CGraphics * m_instance;
     
-    static GLUquadricObj *m_quad;
 
-    
     double m_fov;
     void measureFPS();
     
-    CGraphics() : m_fov(60.0f), m_root(NULL), m_light(false) {
-      m_quad = gluNewQuadric (); 
-    }
+    CGraphics() : m_fov(60.0f), m_root(NULL), m_light(false) {}
 
     void onCreateWindow() {initGL();}
     void onDestroyWindow() {deinitGL();}
@@ -46,7 +41,6 @@ class CGraphics : public CWindowDependent {
     
     ~CGraphics() {
       m_instance = NULL;
-      gluDeleteQuadric(m_quad);
     }
     double getFOV() {
       return m_fov;

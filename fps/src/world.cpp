@@ -335,7 +335,7 @@ void CSector::shot(const CGrRay3D & ray) {
 void CSector::onDraw() const {
 
   tex_container->glBind("texture");
-  glColor4d(1,1,1,1);
+  rnd::color(1,1,1,1);
 
         
   m_walls.onDraw();
@@ -356,92 +356,92 @@ void CMirror::onDraw () const {
   
   if (mirror_stencil) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    glDisable(GL_DEPTH_TEST);
+    rnd::disable(GL_DEPTH_TEST);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
-    glEnable(GL_STENCIL_TEST);
+    rnd::enable(GL_STENCIL_TEST);
     
     glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
     glStencilFunc(GL_ALWAYS, 1, 1);
     
-    glBegin (GL_QUADS);
-      glVertex3d (major_axis_disp, 4., 3.);
-      glVertex3d (major_axis_disp, 0., 3.);
-      glVertex3d (major_axis_disp, 0., -2.5);
-      glVertex3d (major_axis_disp, 4., -2.5);
-    glEnd ();
+    rnd::begin (rnd::QUADS);
+      rnd::vertex (major_axis_disp, 4., 3.);
+      rnd::vertex (major_axis_disp, 0., 3.);
+      rnd::vertex (major_axis_disp, 0., -2.5);
+      rnd::vertex (major_axis_disp, 4., -2.5);
+    rnd::end ();
     
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     
     glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
     glStencilFunc(GL_EQUAL, 1, 1);
-    glEnable(GL_DEPTH_TEST);
+    rnd::enable(GL_DEPTH_TEST);
   }
 
   
-  glPushMatrix ();
+  rnd::pushMatrix ();
       /* Mirrors lies in YZ plane, so scale by -1.0 in X axis */
-      glScaled (-1., 1., 1.);
+      rnd::scale (-1., 1., 1.);
       /* MirrorGL_TEXTURE_2D is 2.0 units from origin, so translate by 4.0 */
-      glTranslated (-2*major_axis_disp, 0., 0.);
-        glFrontFace (GL_CW);
+      rnd::translate (-2*major_axis_disp, 0., 0.);
+        rnd::frontFace (GL_CW);
         
         child()->draw();
 
-  glPopMatrix ();
+  rnd::popMatrix ();
 
 
   if (mirror_stencil) {
-    glDisable(GL_STENCIL_TEST);
+    rnd::disable(GL_STENCIL_TEST);
   } else {
     glClear (GL_DEPTH_BUFFER_BIT);
   }
-  glPushAttrib (GL_LIGHTING_BIT | GL_COLOR_BUFFER_BIT);
-    glDisable (GL_LIGHTING);
+  rnd::pushAttrib (rnd::LIGHTING_BIT | rnd::COLOR_BUFFER_BIT);
+    rnd::disable (rnd::LIGHTING);
     /* Create imperfect reflector effect by blending a black
        mirror over the reflected scene with alpha of 0.05 */
-    glEnable (GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    rnd::enable (GL_BLEND);
+    rnd::blendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     for (int i=0; i<2; ++i) {
     
-      glFrontFace (!i?GL_CW:GL_CCW);
-      glDisable(GL_TEXTURE_2D);
-      glColor4d (0., .1, 0., 0.45);
-      glBegin (GL_QUADS);
-        glVertex3d (major_axis_disp, 4., 3.);
-        glVertex3d (major_axis_disp, 0., 3.);
-        glVertex3d (major_axis_disp, 0., -2.5);
-        glVertex3d (major_axis_disp, 4., -2.5);
-      glEnd ();
+      rnd::frontFace (!i?GL_CW:GL_CCW);
+      rnd::disable(rnd::TEXTURE_2D);
+      rnd::color (0., .1, 0., 0.45);
+      rnd::begin (rnd::QUADS);
+        rnd::vertex (major_axis_disp, 4., 3.);
+        rnd::vertex (major_axis_disp, 0., 3.);
+        rnd::vertex (major_axis_disp, 0., -2.5);
+        rnd::vertex (major_axis_disp, 4., -2.5);
+      rnd::end ();
       
-      glEnable(GL_TEXTURE_2D);
+      rnd::enable(rnd::TEXTURE_2D);
       
       tex_container->glBind("pad_texture");
       
-      glDepthFunc(GL_LEQUAL);
-      glColor4d (1, 1, 1, .7);
-      glBegin (GL_QUADS);
-        glTexCoord2d(0.0, 1.0);
-        glVertex3d (major_axis_disp+(i?0.001:-0.001), 2.5, 2.);
-        glTexCoord2d(0.0, 0.0);
-        glVertex3d (major_axis_disp+(i?0.001:-0.001), 1.5, 2.);
-        glTexCoord2d(1.0, 0.0);
-        glVertex3d (major_axis_disp+(i?0.001:-0.001), 1.5, -1.5);
-        glTexCoord2d(1.0, 1.0);
-        glVertex3d (major_axis_disp+(i?0.001:-0.001), 2.5, -1.5);
-      glEnd ();
-      glDepthFunc(GL_LESS);
+      rnd::depthFunc(GL_LEQUAL);
+      rnd::color (1, 1, 1, .7);
+      rnd::begin (rnd::QUADS);
+        rnd::texCoord(0.0, 1.0);
+        rnd::vertex (major_axis_disp+(i?0.001:-0.001), 2.5, 2.);
+        rnd::texCoord(0.0, 0.0);
+        rnd::vertex (major_axis_disp+(i?0.001:-0.001), 1.5, 2.);
+        rnd::texCoord(1.0, 0.0);
+        rnd::vertex (major_axis_disp+(i?0.001:-0.001), 1.5, -1.5);
+        rnd::texCoord(1.0, 1.0);
+        rnd::vertex (major_axis_disp+(i?0.001:-0.001), 2.5, -1.5);
+      rnd::end ();
+      rnd::depthFunc(GL_LESS);
     }
   
-  glPopAttrib();
+  rnd::popAttrib();
 
   
 
 
   /* Draw the real scene */
   
-  glFrontFace (GL_CCW);
+  rnd::frontFace (GL_CCW);
   
 }
 

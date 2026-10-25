@@ -5,8 +5,7 @@
 #include "stdafx.h"
 #endif
 
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include "glapi.h"
 
 
 extern short level_face_indicies[5635][9];

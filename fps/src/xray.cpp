@@ -35,8 +35,7 @@ eMail       info@xdsoft.com
 #include "player.h"
 #include "engine.h"
 
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include "render.h"
 #include "gr.h"
 #include <math.h>
 
@@ -716,15 +715,15 @@ void CPlayer::drawingInstructions() const {
 
   double scale_factor = m_height / (m_highest - m_lowest);
   
-  glTranslated(0, -m_lowest*scale_factor, 0);
+  rnd::translate(0, -m_lowest*scale_factor, 0);
   
-  glScaled(scale_factor, scale_factor, scale_factor);
+  rnd::scale(scale_factor, scale_factor, scale_factor);
 
-  glRotated(-90, 1.0, 0.0, 0.0);
+  rnd::rotate(-90, 1.0, 0.0, 0.0);
   
 
         
-  glBegin (GL_TRIANGLES);
+  rnd::begin (rnd::TRIANGLES);
     for(unsigned int i=0;
               i<sizeof(face_indicies)/sizeof(face_indicies[0]);++i)
     {
@@ -733,28 +732,28 @@ void CPlayer::drawingInstructions() const {
      int vi=face_indicies[i][j];
      int ni=face_indicies[i][j+3];
      int ti=face_indicies[i][j+6];
-     glTexCoord2f(textures[ti][0],textures[ti][1]);
-     glNormal3f (normals[ni][0],normals[ni][1],normals[ni][2]);
-     glVertex3f (vertices[vi][0],vertices[vi][1],vertices[vi][2]);
+     rnd::texCoord(textures[ti][0],textures[ti][1]);
+     rnd::normal (normals[ni][0],normals[ni][1],normals[ni][2]);
+     rnd::vertex (vertices[vi][0],vertices[vi][1],vertices[vi][2]);
         }
        }
-    glEnd ();
+    rnd::end ();
 }
 
 
 void CPlayer::onDraw () const {
   GrPoint3D skel = m_pos-0.1*m_move_dir;
-  glEnable(GL_BLEND);
-  glPushMatrix ();
+  rnd::enable(GL_BLEND);
+  rnd::pushMatrix ();
   
-  glTranslated(skel.x(), skel.y(), skel.z());
+  rnd::translate(skel.x(), skel.y(), skel.z());
   
-  glRotated(m_rotY+90, 0.0, 1.0, 0.0);
+  rnd::rotate(m_rotY+90, 0.0, 1.0, 0.0);
 
 
   m_displayList->call();
   
-  glPopMatrix ();
+  rnd::popMatrix ();
 
 }
 

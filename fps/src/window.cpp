@@ -13,9 +13,8 @@
 #include "window.h"
 #include "gr.h"
 #include "output.h"
-#include "font8x8.h"
+#include "render.h"
 #include "resource.h"
-#include <SDL3/SDL_opengl.h>
 #include <math.h>
 
 
@@ -28,41 +27,6 @@ CWindow * CWindow::m_instance = NULL;
 
 #define FPS_STR2(x) #x
 #define FPS_STR(x) FPS_STR2(x)
-
-
-/* Build one display list per ASCII character from the 8x8 bitmap font.
- * glBitmap wants the bottom row first and the leftmost pixel in the most
- * significant bit, the opposite of how font8x8 stores them. */
-void CWindow::makeRasterFont(void)
-{
-  COutput * output = COutput::instanceOf();
-
-  m_base = glGenLists(128);
-  if (m_base == 0) {
-    output->printf ("out of display lists\n");
-    exit (0);
-  }
-
-  glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  for (unsigned int c = 0; c < 128; ++c) {
-    GLubyte rows[8];
-    for (int r = 0; r < 8; ++r) {
-      unsigned char bits = font8x8_basic[c][7 - r];
-      GLubyte flipped = 0;
-      for (int b = 0; b < 8; ++b) {
-        if (bits & (1 << b)) flipped |= 0x80 >> b;
-      }
-      rows[r] = flipped;
-    }
-    glNewList(m_base + c, GL_COMPILE);
-    glBitmap(8, 8, 0, 0, 8, 0, rows);
-    glEndList();
-  }
-  glPopClientAttrib();
-
-  output->setBase(m_base);
-}
 
 
 /* this function creates our window and sets it up properly */
@@ -80,6 +44,10 @@ bool CWindow::createGLWindow(const char* title, int width, int height,
   SDL_SetHint(SDL_HINT_WINDOWS_INTRESOURCE_ICON, FPS_STR(IDI_FPS));
   SDL_SetHint(SDL_HINT_WINDOWS_INTRESOURCE_ICON_SMALL, FPS_STR(IDI_SMALL));
 
+  /* OpenGL 3.3 core: the old fixed-function calls do not exist here */
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);   /* stencil mirror (T) */
@@ -115,8 +83,17 @@ bool CWindow::createGLWindow(const char* title, int width, int height,
     return false;
   }
 
+  if (!gladLoadGL((GLADloadfunc) SDL_GL_GetProcAddress)) {
+    output->printf("Could not load the OpenGL functions\n");
+    killGLWindow();
+    return false;
+  }
   output->printf("OpenGL %s, %s\n", glGetString(GL_VERSION),
       glGetString(GL_RENDERER));
+  if (!rnd::init()) {
+    killGLWindow();
+    return false;
+  }
 
   SDL_ShowWindow(m_window);
   SDL_SyncWindow(m_window);
@@ -130,8 +107,8 @@ bool CWindow::createGLWindow(const char* title, int width, int height,
   gl_win.height = ph;
   CGraphics::instanceOf()->resizeGLScene(gl_win.width, gl_win.height);
 
-  makeRasterFont();
   m_app->onCreateWindow().execute();
+  m_created = true;
   return true;// Success
 
 } // createGLWindow
@@ -142,9 +119,12 @@ bool CWindow::createGLWindow(const char* title, int width, int height,
 /* function to release/destroy our resources and restoring the old desktop */
 void CWindow::killGLWindow()
 {
-  m_app->onDestroyWindow().execute();
-
+  if (m_created) {
+    m_app->onDestroyWindow().execute();
+    m_created = false;
+  }
   if (m_context) {
+    rnd::shutdown();
     SDL_GL_DestroyContext(m_context);
     m_context = NULL;
   }

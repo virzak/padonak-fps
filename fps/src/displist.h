@@ -14,6 +14,7 @@
 #include "app.h"
 #include "object.h"
 #include "container.h"
+#include "render.h"
 
 
 class CDisplayList : public CWindowDependent {
@@ -21,7 +22,7 @@ class CDisplayList : public CWindowDependent {
   protected:
     const CObject * m_obj;
     const unsigned int m_instructionSet;
-    GLuint m_displayListName;
+    rnd::Mesh * m_mesh;
     
 
   public:
@@ -30,7 +31,8 @@ class CDisplayList : public CWindowDependent {
         const CObject * obj, 
         unsigned int instSet=0, 
         bool callbacks = true) : 
-      CWindowDependent(callbacks), m_obj(obj), m_instructionSet(instSet) {      
+      CWindowDependent(callbacks), m_obj(obj), m_instructionSet(instSet),
+      m_mesh(NULL) {
     }
   
     virtual void callDisplayListInstructions() const {
@@ -39,20 +41,19 @@ class CDisplayList : public CWindowDependent {
 
     virtual void onCreateWindow() {
 
-      m_displayListName = glGenLists(1);
-
-      glNewList(m_displayListName, GL_COMPILE);
+      m_mesh = rnd::beginMesh();
         callDisplayListInstructions();
-      glEndList();
+      rnd::endMesh();
 
     }
 
     virtual void onDestroyWindow() {
-      glDeleteLists(m_displayListName, 1);
+      rnd::deleteMesh(m_mesh);
+      m_mesh = NULL;
     }
 
     virtual void call() const {
-      glCallList(m_displayListName);      
+      rnd::drawMesh(m_mesh);
     }
     
 };

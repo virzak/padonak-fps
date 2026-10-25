@@ -250,14 +250,14 @@ void CPolygon::onDraw() const {
     m_tex->glBind();
   }
   
-  glBegin(m_n==3 ? GL_TRIANGLES : GL_QUADS);
-    glNormal3dv(m_norm);
+  rnd::begin(m_n==3 ? rnd::TRIANGLES : rnd::QUADS);
+    rnd::normal3v(m_norm);
     for (unsigned int i=0; i<m_n; ++i) {
-      glTexCoord2dv(m_vertex[i].tex);
-      glVertex3dv(m_vertex[i].p);
+      rnd::texCoord2v(m_vertex[i].tex);
+      rnd::vertex3v(m_vertex[i].p);
     }
 
-  glEnd();
+  rnd::end();
 }
 
 

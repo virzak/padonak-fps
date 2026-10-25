@@ -15,7 +15,7 @@
 
 #include "stain.h"
 #include <stdlib.h>
-#include <GL/gl.h>
+#include "render.h"
 
 // Always last
 #include "globals.h"
@@ -61,22 +61,22 @@ void CStainContainer::onDraw() const {
   if (!empty()) {
 
     // Save the state on stack
-    glPushAttrib (GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_TEXTURE_BIT);
+    rnd::pushAttrib (rnd::DEPTH_BUFFER_BIT | rnd::COLOR_BUFFER_BIT | rnd::TEXTURE_BIT);
       
       tex_container->glBind("bullet_mrk");
       
-      glDepthMask(GL_FALSE);  // Don't write stains to depth buffer
+      rnd::depthMask(false);  // Don't write stains to depth buffer
                               // to prevent z-buffer fighting
-      glDepthFunc(GL_LEQUAL); // When stain is on the same depth as the wall
+      rnd::depthFunc(GL_LEQUAL); // When stain is on the same depth as the wall
                               // draw the stain
       //
       // Blend the stain with the original color
-      glEnable(GL_BLEND);     
-      glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+      rnd::enable(GL_BLEND);     
+      rnd::blendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
 
       CObjectContainer<CStain>::onDraw();
 
-    glPopAttrib(); // Restore the previous values
+    rnd::popAttrib(); // Restore the previous values
   }
 
 

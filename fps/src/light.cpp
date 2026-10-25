@@ -11,7 +11,7 @@
 
 #include "light.h"
 #include "engine.h"
-#include "GL/glu.h"
+#include "render.h"
 
 
 
@@ -29,13 +29,16 @@ void CLight::onUpdate(unsigned int /*msecs*/) {
   lightPosition[0] = (float) m_pos.x();
   lightPosition[1] = (float) m_pos.y();
   lightPosition[2] = (float) m_pos.z();
+  /* This was left uninitialised. It came out 0 in the fixed-function build,
+   * making a directional light along the eye position; keep that look. */
+  lightPosition[3] = 0.0f;
   
 #ifdef __ICC
 #pragma warning (default:810)
 #endif
 
   
-  glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+  rnd::lightPosition(lightPosition);
 
 }
 
@@ -49,22 +52,20 @@ void CLight::onUpdate(unsigned int /*msecs*/) {
 void CLight::onDraw() const {
 
   // Is this necessary???
-  if (glIsEnabled(GL_LIGHTING)) {
-    GLUquadricObj * quad = gluNewQuadric (); 
-    glPushMatrix();
-    glPushAttrib(GL_ENABLE_BIT | GL_LIGHTING_BIT | GL_CURRENT_BIT);
+  if (rnd::isEnabled(rnd::LIGHTING)) {
+    rnd::pushMatrix();
+    rnd::pushAttrib(rnd::ENABLE_BIT | rnd::LIGHTING_BIT | rnd::CURRENT_BIT);
     
-      glTranslated(m_pos.x(), m_pos.y(), m_pos.z());
-      glColor4f(1, 1, 1, 0.5);
-      glDisable(GL_LIGHTING);
-      glEnable (GL_BLEND);
-      glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      glDisable(GL_TEXTURE_2D);
+      rnd::translate(m_pos.x(), m_pos.y(), m_pos.z());
+      rnd::color(1, 1, 1, 0.5);
+      rnd::disable(rnd::LIGHTING);
+      rnd::enable (GL_BLEND);
+      rnd::blendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      rnd::disable(rnd::TEXTURE_2D);
       
-      gluSphere( quad, 0.2, 20, 20 );
-    glPopAttrib();
-    glPopMatrix();
-    gluDeleteQuadric(quad);
+      rnd::sphere( 0.2, 20, 20 );
+    rnd::popAttrib();
+    rnd::popMatrix();
   }
 
 }

@@ -15,6 +15,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include "output.h"
+#include "render.h"
 
 
 COutput * COutput::m_instance = NULL;
@@ -129,8 +130,6 @@ void COutput::draw(unsigned int x, unsigned int y, unsigned int show_lines) {
   if (show_lines+m_lines_back>can_show) m_lines_back=m_lines+1-show_lines;
 
   for (unsigned int i=0; i<show_lines; ++i) {
-    glRasterPos2i(x, y-i*14);
- 
     unsigned int buffer_index = (m_first_line+can_show-show_lines+i-m_lines_back) % m_total_lines;
      
 	char * output_line = m_line_buffer[buffer_index];
@@ -139,11 +138,7 @@ void COutput::draw(unsigned int x, unsigned int y, unsigned int show_lines) {
 	sprintf(help_output_line, "%d) %s", buffer_index, output_line);
 	//sprintf(help_output_line, "> %s", output_line);
 
-    glCallLists (
-        (GLsizei) strlen(help_output_line), 
-        GL_UNSIGNED_BYTE, 
-        (GLubyte *) help_output_line
-    );
+    rnd::text(x, y-i*14.0, help_output_line);
   }
 }
 
@@ -155,8 +150,7 @@ void COutput::gprintf(const int x, const int y, const char *fmt, ...)
 
   va_start(argp, fmt);
   vsprintf(tmp, fmt, argp);
-  glRasterPos2i(x, y);
-  glCallLists ((GLsizei) strlen(tmp), GL_UNSIGNED_BYTE, (GLubyte *) tmp);
+  rnd::text(x, y, tmp);
   
   va_end(argp);
 }

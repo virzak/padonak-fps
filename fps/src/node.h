@@ -19,7 +19,6 @@
 #include "stdafx.h"
 #endif
 
-#include <GL/gl.h>
 #include "util.h"
 
 

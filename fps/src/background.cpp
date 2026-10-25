@@ -11,6 +11,7 @@
 
 #include "background.h"
 #include "engine.h"
+#include "render.h"
 
 inline GrPoint2D getBgTexCoord(double rotY, double lookup) {
   return GrPoint2D(rotY/360.f+0.5f,lookup/360.f+0.5f); //top-left
@@ -23,39 +24,39 @@ void CBackground::onDraw() const {
 
 
   // set up for orthogonal drawing to draw Background 
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
+  rnd::matrixMode(rnd::PROJECTION);
+  rnd::loadIdentity();
   glViewport(0, 0, window->gl_win.width, window->gl_win.height);
-  glOrtho(0.0, (double)window->gl_win.width, 0.0, (double)window->gl_win.height, -0.1, 0.1);
+  rnd::ortho(0.0, (double)window->gl_win.width, 0.0, (double)window->gl_win.height, -0.1, 0.1);
 
   // change to model view for drawing
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+  rnd::matrixMode(rnd::MODELVIEW);
+  rnd::loadIdentity();
   
-  glEnable(GL_TEXTURE_2D);
+  rnd::enable(rnd::TEXTURE_2D);
 
 
 
-  glPushAttrib(GL_ENABLE_BIT);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_LIGHTING);
+  rnd::pushAttrib(rnd::ENABLE_BIT);
+    rnd::disable(GL_CULL_FACE);
+    rnd::disable(GL_DEPTH_TEST);
+    rnd::disable(rnd::LIGHTING);
     
     tex_container->glBind("bg_texture");
     
-    glBegin(GL_QUADS);
-      glTexCoord2dv(m_tl);
-      glVertex2i(0,window->gl_win.height);
-      glTexCoord2dv(m_bl);
-      glVertex2i(0,0); 
-      glTexCoord2dv(m_br);
-      glVertex2i(window->gl_win.width,0); 
-      glTexCoord2dv(m_tr);
-      glVertex2i(window->gl_win.width,window->gl_win.height); 
-    glEnd();
+    rnd::begin(rnd::QUADS);
+      rnd::texCoord2v(m_tl);
+      rnd::vertex(0,window->gl_win.height);
+      rnd::texCoord2v(m_bl);
+      rnd::vertex(0,0); 
+      rnd::texCoord2v(m_br);
+      rnd::vertex(window->gl_win.width,0); 
+      rnd::texCoord2v(m_tr);
+      rnd::vertex(window->gl_win.width,window->gl_win.height); 
+    rnd::end();
   
   
-  glPopAttrib();
+  rnd::popAttrib();
 
 
 }

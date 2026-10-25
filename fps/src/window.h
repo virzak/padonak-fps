@@ -17,10 +17,6 @@
 #include <SDL3/SDL.h>
 #include "app.h"
 
-#ifdef _WIN32
-#include "stdafx.h"   /* GL/gl.h needs windows.h first */
-#endif
-
 
 typedef struct {
   bool fs;
@@ -66,7 +62,7 @@ class CWindow {
     static CWindow * m_instance;
     CWindow(const char* title, int width, int height, int /*bits*/,
         bool fullscreenflag, CCallbacks * callbacks)
-        : m_window(NULL), m_context(NULL) {
+        : m_window(NULL), m_context(NULL), m_created(false) {
       m_app = CApp::instanceOf();
       gl_win.fs=fullscreenflag;
       gl_win.width = width;
@@ -86,14 +82,12 @@ class CWindow {
 
     CCallbacks * m_callbacks;
 
-    unsigned int m_base;
-
     SDL_Window * m_window;
     SDL_GLContext m_context;
+    bool m_created;   /* the window dependents have been told */
 
   public:
     GLWindow gl_win;
-    unsigned int base() {return m_base;}
 
     ~CWindow() {
       if (m_default_callbacks) {
@@ -122,7 +116,6 @@ class CWindow {
 
     void swapFunction();
     void processEvents();
-    void makeRasterFont(void);
 };
 
 #endif /*__WINDOW_H__*/

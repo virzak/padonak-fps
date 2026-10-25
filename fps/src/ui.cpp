@@ -182,9 +182,9 @@ void CUI::keyAction()
   {
     gr->m_light = !gr->m_light;
     if (!gr->m_light) {
-      glDisable(GL_LIGHTING);
+      rnd::disable(rnd::LIGHTING);
     } else {
-      glEnable(GL_LIGHTING);
+      rnd::enable(rnd::LIGHTING);
     }
   }
   if (getAction(FPS_FILTER, false))
