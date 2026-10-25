@@ -174,8 +174,9 @@ void init_app () {
 
 
 
-#ifdef linux
 #include <signal.h>
+#include <SDL3/SDL_main.h>   /* provides WinMain on Windows */
+
 static void gc_signal_handler(int signal_no)
 {
     signal(SIGINT, gc_signal_handler);  /* Make sure we catch another CTRL-C. */
@@ -191,33 +192,9 @@ int main(int argc, char **argv)
   signal(SIGABRT, gc_signal_handler);
   
   init_app();
+  SDL_Quit();
   return 0;
 }
-#endif 
-
-
-#ifdef WIN32
-
-#include "stdafx.h"
-#include "fps.h"
-#define MAX_LOADSTRING 100
-
-TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
-TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
-int APIENTRY _tWinMain(HINSTANCE hInstance,
-                     HINSTANCE hPrevInstance,
-                     LPTSTR    lpCmdLine,
-                     int       nCmdShow)
-{
-
-	// Initialize global strings
-	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-	LoadString(hInstance, IDC_FPS, szWindowClass, MAX_LOADSTRING);
-
-  init_app();
-  return 0;
-}
-#endif
 
  
 

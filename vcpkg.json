@@ -3,6 +3,10 @@
     {
       "name": "libjpeg-turbo",
       "platform": "windows"
+    },
+    {
+      "name": "sdl3",
+      "platform": "windows"
     }
   ]
 }

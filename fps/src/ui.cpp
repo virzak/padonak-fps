@@ -14,15 +14,7 @@
 #include "engine.h"
 #include "camera.h"
 
-#ifdef linux
-#include <X11/keysym.h>
-#include <GL/glx.h>
-#endif
-
-
-#ifdef WIN32
-#include "stdafx.h"
-#endif
+#include <SDL3/SDL_scancode.h>
 
 typedef enum {
   FPS_FS_TOGGLE,
@@ -185,8 +177,6 @@ void CUI::keyAction()
         this);
     timer.pause();
     m_destroyed_by_user = true;
-
-    m_centering = true;
   }
   if (getAction(FPS_LIGHT, false))
   {
@@ -302,29 +292,19 @@ void CUI::keyAction()
 
 
 
-void CUI::motionAction(unsigned int x, unsigned int y) {
+void CUI::motionAction(int dx, int dy) {
   
   if (timer.isPaused()) return;
 
-  int dx = x - window->gl_win.width/2;
-  int dy = y - window->gl_win.height/2;
-
-  
-  if (dx != 0 || dy != 0) {
-    if (!m_centering) {
-      if (!action[FPS_VIEW]) {
-        cp->changeLook(0.1*dx, -0.1*dy);
-      } else {
-        cam->changeLook(0.1*dx, -0.1*dy);
-      }
-    }
-    /*Put the pointer back in the center*/
-    window->centerMousePointer();
-  } else m_centering = false;
+  if (!action[FPS_VIEW]) {
+    cp->changeLook(0.1*dx, -0.1*dy);
+  } else {
+    cam->changeLook(0.1*dx, -0.1*dy);
+  }
 }
 
 void CUI::reset() {
-  memset(m_keys, 0, 256*sizeof(bool));
+  memset(m_keys, 0, sizeof(m_keys));
   memset(m_buttons, 0, 10*sizeof(bool));
 }
 
@@ -332,106 +312,53 @@ void CUI::reset() {
 void CUI::initKeys()
 {
   output->printf("Initializing keys...\n");
-#ifdef linux
-  Display * dpy = CWindow::instanceOf()->GLWin.dpy;
+  /* scancodes are layout independent: WASD stays put on AZERTY */
   /* get keycode for escape-key */
-  m_keyCodes[0] = XKeysymToKeycode(dpy, XK_Escape);
+  m_keyCodes[0] = SDL_SCANCODE_ESCAPE;
   /* get keycode for F1 */
-  m_keyCodes[1] = XKeysymToKeycode(dpy, XK_F1);
+  m_keyCodes[1] = SDL_SCANCODE_F1;
   /* get keycode for l */
-  m_keyCodes[2] = XKeysymToKeycode(dpy, XK_l);
+  m_keyCodes[2] = SDL_SCANCODE_L;
   /* get keycode for f */
-  m_keyCodes[3] = XKeysymToKeycode(dpy, XK_f);
+  m_keyCodes[3] = SDL_SCANCODE_F;
   /* get keycode for b */
-  m_keyCodes[4] = XKeysymToKeycode(dpy, XK_b);       //FREE
+  m_keyCodes[4] = SDL_SCANCODE_B;  //FREE
   /* get keycode for Page_Up */
-  m_keyCodes[5] = XKeysymToKeycode(dpy, XK_Page_Up);
+  m_keyCodes[5] = SDL_SCANCODE_PAGEUP;
   /* get keycode for Page_Down */
-  m_keyCodes[6] = XKeysymToKeycode(dpy, XK_Page_Down);
+  m_keyCodes[6] = SDL_SCANCODE_PAGEDOWN;
   /* get keycode for Up-Arrow */
-  m_keyCodes[7] = XKeysymToKeycode(dpy, XK_Up);
+  m_keyCodes[7] = SDL_SCANCODE_UP;
   /* get keycode for Down-Arrow */
-  m_keyCodes[8] = XKeysymToKeycode(dpy, XK_Down);
+  m_keyCodes[8] = SDL_SCANCODE_DOWN;
   /* get keycode for Left-Arrow */
-  m_keyCodes[9] = XKeysymToKeycode(dpy, XK_Left);
+  m_keyCodes[9] = SDL_SCANCODE_LEFT;
   /* get keycode for Right-Arrow */
-  m_keyCodes[10] = XKeysymToKeycode(dpy, XK_Right);
+  m_keyCodes[10] = SDL_SCANCODE_RIGHT;
   /* get keycode for a */
-  m_keyCodes[11] = XKeysymToKeycode(dpy, XK_a);
+  m_keyCodes[11] = SDL_SCANCODE_A;
   /* get keycode for d */
-  m_keyCodes[12] = XKeysymToKeycode(dpy, XK_d);
+  m_keyCodes[12] = SDL_SCANCODE_D;
   /* get keycode for w */
-  m_keyCodes[13] = XKeysymToKeycode(dpy, XK_w);
+  m_keyCodes[13] = SDL_SCANCODE_W;
   /* get keycode for s */
-  m_keyCodes[14] = XKeysymToKeycode(dpy, XK_s);
+  m_keyCodes[14] = SDL_SCANCODE_S;
   /* get keycode for o */
-  m_keyCodes[15] = XKeysymToKeycode(dpy, XK_o);
+  m_keyCodes[15] = SDL_SCANCODE_O;
   /* get keycode for m */
-  m_keyCodes[16] = XKeysymToKeycode(dpy, XK_m);
+  m_keyCodes[16] = SDL_SCANCODE_M;
   /* get keycode for ` */
-  m_keyCodes[17] = XKeysymToKeycode(dpy, XK_grave);
+  m_keyCodes[17] = SDL_SCANCODE_GRAVE;
   /* get keycode for p */
-  m_keyCodes[18] = XKeysymToKeycode(dpy, XK_p);
+  m_keyCodes[18] = SDL_SCANCODE_P;
   /* get keycode for n */
-  m_keyCodes[19] = XKeysymToKeycode(dpy, XK_n);
+  m_keyCodes[19] = SDL_SCANCODE_N;
   /* get keycode for TAB */
-  m_keyCodes[20] = XKeysymToKeycode(dpy, XK_Tab);
+  m_keyCodes[20] = SDL_SCANCODE_TAB;
   /* get keycode for t */
-  m_keyCodes[21] = XKeysymToKeycode(dpy, XK_t);
-  /* get keycode for pause */
-  m_keyCodes[22] = XKeysymToKeycode(dpy, XK_Pause);
-#endif
-
-
-  
-#ifdef WIN32
-  /* get keycode for escape-key */
-  m_keyCodes[0] = VK_ESCAPE;
-  /* get keycode for F1 */
-  m_keyCodes[1] = VK_F1;
-  /* get keycode for l */
-  m_keyCodes[2] = 'L';
-  /* get keycode for f */
-  m_keyCodes[3] = 'F';
-  /* get keycode for b */
-  m_keyCodes[4] = 'B';                            //FREE
-  /* get keycode for Page_Up */
-  m_keyCodes[5] = VK_PRIOR;
-  /* get keycode for Page_Down */
-  m_keyCodes[6] = VK_NEXT;
-  /* get keycode for Up-Arrow */
-  m_keyCodes[7] = VK_UP;
-  /* get keycode for Down-Arrow */
-  m_keyCodes[8] = VK_DOWN;
-  /* get keycode for Left-Arrow */
-  m_keyCodes[9] = VK_LEFT;
-  /* get keycode for Right-Arrow */
-  m_keyCodes[10] = VK_RIGHT;
-  /* get keycode for a */
-  m_keyCodes[11] = 'A';
-  /* get keycode for d */
-  m_keyCodes[12] = 'D';
-  /* get keycode for w */
-  m_keyCodes[13] = 'W';
-  /* get keycode for s */
-  m_keyCodes[14] = 'S';
-  /* get keycode for o */
-  m_keyCodes[15] = 'O';
-  /* get keycode for m */
-  m_keyCodes[16] = 'M';
-  /* get keycode for ` */
-  m_keyCodes[17] = VK_OEM_3;
-  /* get keycode for p */
-  m_keyCodes[18] = 'P';
-  /* get keycode for n */
-  m_keyCodes[19] = 'N';
-  /* get keycode for TAB */
-  m_keyCodes[20] = VK_TAB;
-  /* get keycode for t */
-  m_keyCodes[21] = 'T';
-  /* get keycode for Pause */
-  m_keyCodes[22] = VK_F3;
-#endif
+  m_keyCodes[21] = SDL_SCANCODE_T;
+  /* get keycode for pause (F3, as on Windows) */
+  m_keyCodes[22] = SDL_SCANCODE_F3;
 
 }
 

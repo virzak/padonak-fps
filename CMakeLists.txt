@@ -39,17 +39,17 @@ target_include_directories(fps PRIVATE
   surface_paster_cpp/include
 )
 
+find_package(SDL3 REQUIRED CONFIG)
 find_package(OpenGL REQUIRED)
 find_package(JPEG REQUIRED)
-target_link_libraries(fps PRIVATE OpenGL::GL OpenGL::GLU JPEG::JPEG)
+target_link_libraries(fps PRIVATE SDL3::SDL3 OpenGL::GL OpenGL::GLU JPEG::JPEG)
 
 if(WIN32)
   set_target_properties(fps PROPERTIES WIN32_EXECUTABLE ON)
   target_sources(fps PRIVATE fps/fps.rc fps/fps.manifest)
   target_compile_definitions(fps PRIVATE WIN32 _WINDOWS _CRT_SECURE_NO_WARNINGS)
 else()
-  find_package(X11 REQUIRED)
-  target_link_libraries(fps PRIVATE X11::X11 X11::Xxf86vm X11::Xt m)
+  target_link_libraries(fps PRIVATE m)
 endif()
 
 if(MSVC)

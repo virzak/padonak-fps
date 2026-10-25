@@ -9,11 +9,11 @@ Padonak FPS, a small OpenGL first-person shooter from 2003, and the graphics lib
 
 `fps` compiles sources from the other three directories directly, so they are kept together in one repository.
 
-The build is CMake (`CMakeLists.txt` and `CMakePresets.json` at the root). Build output goes to `artifacts/<preset>/`. The game loads `data/` relative to the current directory, so run it from `fps`.
+The game uses SDL3 for its window, input and OpenGL context. The build is CMake (`CMakeLists.txt` and `CMakePresets.json` at the root). Build output goes to `artifacts/<preset>/`. The game loads `data/` relative to the current directory, so run it from `fps`.
 
 ## Build and run on Windows
 
-Requires Visual Studio 2026 with the "Desktop development with C++" workload, which includes CMake and vcpkg. vcpkg builds libjpeg-turbo on the first configure.
+Requires Visual Studio 2026 with the "Desktop development with C++" workload, which includes CMake and vcpkg. vcpkg builds SDL3 and libjpeg-turbo on the first configure.
 
 From a Developer PowerShell for VS 2026:
 
@@ -30,11 +30,11 @@ Outside a developer prompt, set `VCPKG_ROOT` to the vcpkg that ships with Visual
 
 ## Build and run on Linux or WSLg
 
-Install a compiler, CMake and the OpenGL, X11 and libjpeg development packages (Ubuntu):
+Install a compiler, CMake and the SDL3, OpenGL and libjpeg development packages (Ubuntu 26.04 or later, for SDL3):
 
 ```sh
-sudo apt-get install build-essential cmake libgl1-mesa-dev libglu1-mesa-dev \
-  libx11-dev libxext-dev libxxf86vm-dev libxt-dev libjpeg-dev
+sudo apt-get install build-essential cmake libsdl3-dev libgl1-mesa-dev \
+  libglu1-mesa-dev libjpeg-dev
 ```
 
 Then:

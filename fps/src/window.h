@@ -1,7 +1,7 @@
 //*****************************************************************************
-// @(#) $Id: window.h,v 1.12 2003/10/18 07:57:45 virzak Exp $ 
-// 
-//  Description: 
+// @(#) $Id: window.h,v 1.12 2003/10/18 07:57:45 virzak Exp $
+//
+//  Description:
 //      Contains the CWindow class
 //
 //  =
@@ -14,36 +14,17 @@
 #define __WINDOW_H__
 
 #include <stdio.h>
+#include <SDL3/SDL.h>
 #include "app.h"
 
-#ifdef WIN32
-#include "stdafx.h"
-#include "fps.h"
-#endif
-
-
-#ifdef linux
-
-#include <GL/glx.h>
-#include <X11/extensions/xf86vmode.h>
-
-/* stuff about our window grouped together */
-typedef struct {
-  Display *dpy;
-  int screen;
-  Window win;
-  GLXContext ctx;
-  XSetWindowAttributes attr;
-  XF86VidModeModeInfo deskMode;
-  int x, y;
-  unsigned int depth;  
-} XGLWindow;
+#ifdef _WIN32
+#include "stdafx.h"   /* GL/gl.h needs windows.h first */
 #endif
 
 
 typedef struct {
   bool fs;
-  unsigned int width;
+  unsigned int width;   /* drawable size in pixels */
   unsigned int height;
 } GLWindow;
 
@@ -57,10 +38,11 @@ class CCallbacks {
   public:
     bool isDestroyedByUser() {return m_destroyed_by_user;}
     bool isSendingLetter() {return m_send_letter;}
-    virtual void enter() {}
-    virtual void motion(unsigned int /*x*/, unsigned int /*y*/) {}
+    /* relative mouse movement in pixels; the pointer is captured */
+    virtual void motion(int /*dx*/, int /*dy*/) {}
     virtual void buttonPress(unsigned int /*b*/) {}
     virtual void buttonRelease(unsigned int /*b*/) {}
+    /* k is an SDL_Scancode */
     virtual void keyPress(unsigned int /*k*/) {}
     virtual void sendChar(const unsigned char /*c*/) {}
     virtual void keyRelease(unsigned int /*k*/) {}
@@ -73,17 +55,18 @@ class CCallbacks {
 
 class CWindow {
     static bool m_success;
-    bool createGLWindow (
-        char* title, int width, int height, int bits, bool fullscreenflag);
+    bool createGLWindow (const char* title, int width, int height,
+        bool fullscreenflag);
     void killGLWindow();
 
     CApp * m_app;
-    
+
     bool m_default_callbacks;
 
     static CWindow * m_instance;
-    CWindow(char* title, int width, int height, int bits, bool fullscreenflag,
-        CCallbacks * callbacks)  {
+    CWindow(const char* title, int width, int height, int /*bits*/,
+        bool fullscreenflag, CCallbacks * callbacks)
+        : m_window(NULL), m_context(NULL) {
       m_app = CApp::instanceOf();
       gl_win.fs=fullscreenflag;
       gl_win.width = width;
@@ -96,34 +79,34 @@ class CWindow {
         m_callbacks = new CCallbacks();
         m_default_callbacks = true;
       }
-      
-      m_success = createGLWindow(title, width, height, bits, fullscreenflag);
+
+      m_success = createGLWindow(title, width, height, fullscreenflag);
     }
-    
+
 
     CCallbacks * m_callbacks;
 
     unsigned int m_base;
-    
-    
+
+    SDL_Window * m_window;
+    SDL_GLContext m_context;
+
   public:
     GLWindow gl_win;
     unsigned int base() {return m_base;}
-#ifdef linux
-    XGLWindow GLWin;
-#endif
- 
+
     ~CWindow() {
       if (m_default_callbacks) {
         delete m_callbacks;
       }
-      
-      killGLWindow(); 
+
+      killGLWindow();
       m_instance = NULL;
     }
-    
-    static CWindow * instanceOf(char* title, int width, int height, int bits, 
-        bool fullscreenflag, CCallbacks * callbacks) {
+
+    /* bits is ignored; SDL picks the desktop colour depth */
+    static CWindow * instanceOf(const char* title, int width, int height,
+        int bits, bool fullscreenflag, CCallbacks * callbacks) {
       if (!m_instance) {
         m_instance = new CWindow(title, width, height, bits, fullscreenflag,
             callbacks);
@@ -136,14 +119,9 @@ class CWindow {
       return m_instance;
     }
 
-    
+
     void swapFunction();
-    void initKeys();
     void processEvents();
-#ifdef WIN32
-    LRESULT CALLBACK proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-#endif
-    void centerMousePointer();
     void makeRasterFont(void);
 };
 

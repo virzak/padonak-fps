@@ -15,4 +15,3 @@
 #include <tchar.h>
 
 // TODO: reference additional headers your program requires here
-TCHAR szWindowClass[];  // the main window class name

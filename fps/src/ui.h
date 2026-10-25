@@ -16,6 +16,7 @@
 #include "app.h"
 #include "window.h"
 #include "output.h"
+#include <SDL3/SDL_scancode.h>
 
 class CUI : public CWindowDependent, public CCallbacks {
     
@@ -28,10 +29,9 @@ class CUI : public CWindowDependent, public CCallbacks {
     }
     virtual void onDestroyWindow() {}
     
-    bool m_centering;
-    CUI() : m_centering(true) {}
+    CUI() {}
 
-    bool m_keys[256];
+    bool m_keys[SDL_SCANCODE_COUNT];
     bool m_buttons[10];
     unsigned int  m_keyCodes[40];   /* array to hold our fetched keycodes */
      
@@ -51,22 +51,17 @@ class CUI : public CWindowDependent, public CCallbacks {
 
     
     void reset();
-    inline void center() {m_centering = true;}
     void keyButtonAction();
     void buttonAction();
     void keyAction();
-    void motionAction(unsigned int x, unsigned int y);
+    void motionAction(int dx, int dy);
     void initKeys();
     
     virtual void parseUserCommand(const string &);
     virtual void parseUserSource(istream & in);
     
-    virtual void enter() {
-      center();
-    };
-    
-    virtual void motion(unsigned int x, unsigned int y) {
-      motionAction(x,y);
+    virtual void motion(int dx, int dy) {
+      motionAction(dx,dy);
     }
     
     virtual void rollUp();
@@ -87,7 +82,7 @@ class CUI : public CWindowDependent, public CCallbacks {
     }
     
     virtual void keyPress(unsigned int k) {
-      m_keys[k] = true;
+      if (k < SDL_SCANCODE_COUNT) m_keys[k] = true;
     }
     
     virtual void sendChar(const unsigned char c) {
@@ -96,7 +91,7 @@ class CUI : public CWindowDependent, public CCallbacks {
     
     
     virtual void keyRelease(unsigned int k) {
-      m_keys[k] = false;
+      if (k < SDL_SCANCODE_COUNT) m_keys[k] = false;
     }
 
 };
