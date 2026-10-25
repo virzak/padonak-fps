@@ -29,23 +29,38 @@ add_executable(fps
   fps/src/world.cpp
   fps/src/xray.cpp
   grutil/src/util.cpp
-  third_party/glad/src/gl.c
 )
 
 target_include_directories(fps PRIVATE
   fps
   fps/src
   grutil/include
-  third_party/glad/include
 )
 # grutil's few fixed-function drawing helpers are not used by the game
 target_compile_definitions(fps PRIVATE GRUTIL_NO_GL)
 
-# OpenGL itself is loaded at run time through SDL and glad, so it is not
-# linked.
-find_package(SDL3 REQUIRED CONFIG)
-find_package(JPEG REQUIRED)
-target_link_libraries(fps PRIVATE SDL3::SDL3 JPEG::JPEG)
+if(EMSCRIPTEN)
+  # The browser build: SDL3 and libjpeg are Emscripten ports, OpenGL ES 3.0
+  # is WebGL 2, and data/ is bundled into fps.data next to the page.
+  set(web_ports --use-port=sdl3 --use-port=libjpeg)
+  target_compile_options(fps PRIVATE ${web_ports})
+  target_link_options(fps PRIVATE ${web_ports}
+    -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2
+    -sALLOW_MEMORY_GROWTH=1
+    "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/fps/data@data"
+    "--shell-file=${CMAKE_CURRENT_SOURCE_DIR}/fps/web/shell.html"
+  )
+  set_target_properties(fps PROPERTIES SUFFIX .html
+    LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/fps/web/shell.html")
+else()
+  # OpenGL itself is loaded at run time through SDL and glad, so it is not
+  # linked.
+  find_package(SDL3 REQUIRED CONFIG)
+  find_package(JPEG REQUIRED)
+  target_link_libraries(fps PRIVATE SDL3::SDL3 JPEG::JPEG)
+  target_sources(fps PRIVATE third_party/glad/src/gl.c)
+  target_include_directories(fps PRIVATE third_party/glad/include)
+endif()
 
 if(WIN32)
   set_target_properties(fps PROPERTIES WIN32_EXECUTABLE ON)
@@ -58,10 +73,8 @@ endif()
 if(MSVC)
   target_compile_options(fps PRIVATE /permissive /W1)
 else()
-  # 2003-era code: accept its non-standard constructs quietly. It also
-  # relies on pre-C++11 template name lookup.
-  set_target_properties(fps PROPERTIES CXX_STANDARD 98 CXX_EXTENSIONS ON)
-  target_compile_options(fps PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fpermissive> -w)
+  # 2003-era code: keep its many old-style warnings quiet
+  target_compile_options(fps PRIVATE -w)
 endif()
 
 # The game loads data/ relative to the working directory.

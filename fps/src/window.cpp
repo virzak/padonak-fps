@@ -44,10 +44,17 @@ bool CWindow::createGLWindow(const char* title, int width, int height,
   SDL_SetHint(SDL_HINT_WINDOWS_INTRESOURCE_ICON, FPS_STR(IDI_FPS));
   SDL_SetHint(SDL_HINT_WINDOWS_INTRESOURCE_ICON_SMALL, FPS_STR(IDI_SMALL));
 
+#ifdef __EMSCRIPTEN__
+  /* OpenGL ES 3.0, which the browser provides as WebGL 2 */
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#else
   /* OpenGL 3.3 core: the old fixed-function calls do not exist here */
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#endif
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);   /* stencil mirror (T) */
@@ -83,11 +90,13 @@ bool CWindow::createGLWindow(const char* title, int width, int height,
     return false;
   }
 
+#ifndef __EMSCRIPTEN__
   if (!gladLoadGL((GLADloadfunc) SDL_GL_GetProcAddress)) {
     output->printf("Could not load the OpenGL functions\n");
     killGLWindow();
     return false;
   }
+#endif
   output->printf("OpenGL %s, %s\n", glGetString(GL_VERSION),
       glGetString(GL_RENDERER));
   if (!rnd::init()) {
@@ -138,6 +147,12 @@ void CWindow::killGLWindow()
 
 void CWindow::swapFunction() {
   SDL_GL_SwapWindow(m_window);
+}
+
+
+
+void CWindow::setFullscreen(bool fullscreen) {
+  if (SDL_SetWindowFullscreen(m_window, fullscreen)) gl_win.fs = fullscreen;
 }
 
 

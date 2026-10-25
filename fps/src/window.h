@@ -115,6 +115,8 @@ class CWindow {
 
 
     void swapFunction();
+    /* switches the existing window; desktop F1 recreates it instead */
+    void setFullscreen(bool fullscreen);
     void processEvents();
 };
 

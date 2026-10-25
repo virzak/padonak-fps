@@ -163,12 +163,19 @@ void CUI::keyAction()
 	if (m_send_letter) {
           m_send_letter = false;
 	} else {
+#ifndef __EMSCRIPTEN__
+	  /* in a browser Esc only releases the mouse; closing the tab quits */
 	  CApp::instanceOf()->m_done = true;
+#endif
 	}
 
   }
   if (getAction(FPS_FS_TOGGLE, false))
   {
+#ifdef __EMSCRIPTEN__
+    /* the page has one canvas: make it fullscreen instead of recreating it */
+    window->setFullscreen(!window->gl_win.fs);
+#else
     m_destroyed_by_user = false;
     bool new_fs_flag = !window->gl_win.fs;
     timer.pause();
@@ -177,6 +184,7 @@ void CUI::keyAction()
         this);
     timer.pause();
     m_destroyed_by_user = true;
+#endif
   }
   if (getAction(FPS_LIGHT, false))
   {

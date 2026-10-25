@@ -7,9 +7,9 @@ Padonak FPS, a small OpenGL first-person shooter from 2003, and the graphics lib
 - `subdiv` - polyhedron subdivision surfaces, with a GLUT viewer in `subdiv/ui_glut`.
 - `surface_paster_cpp` - surface pasting library (`lib`), with a Tcl/Tk and Togl editor in `ui_tcltk`.
 
-`fps` compiles sources from the other three directories directly, so they are kept together in one repository.
+`fps` compiles `grutil` directly. It once also built `subdiv` and `surface_paster_cpp`, but never drew their objects; they stay here with their own viewers, which still use fixed-function OpenGL.
 
-The game uses SDL3 for its window, input and OpenGL context, and draws with OpenGL 3.3 core through a small shader-based renderer (`fps/src/render.cpp`) that keeps the shape of the fixed-function API the 2003 code was written against. The build is CMake (`CMakeLists.txt` and `CMakePresets.json` at the root). Build output goes to `artifacts/<preset>/`. The game loads `data/` relative to the current directory, so run it from `fps`.
+The game uses SDL3 for its window, input and OpenGL context, and draws with OpenGL 3.3 core (OpenGL ES 3.0, that is WebGL 2, in the browser) through a small shader-based renderer (`fps/src/render.cpp`) that keeps the shape of the fixed-function API the 2003 code was written against. The build is CMake (`CMakeLists.txt` and `CMakePresets.json` at the root). Build output goes to `artifacts/<preset>/`. The game loads `data/` relative to the current directory, so run it from `fps`.
 
 ## Build and run on Windows
 
@@ -47,6 +47,19 @@ cd fps
 ```
 
 On Windows, run this inside a WSL distribution such as `wsl -d Ubuntu`; the window opens on the Windows desktop through WSLg.
+
+## Build and run in a browser
+
+The web build uses Emscripten. Install the [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html) (on Windows, inside WSL is easiest), then:
+
+```sh
+source ~/emsdk/emsdk_env.sh
+cmake --preset web
+cmake --build --preset web
+python3 -m http.server --directory artifacts/web 8000
+```
+
+Open http://localhost:8000/fps.html and click the game to capture the mouse; Esc releases it. The page has to come from a web server, because browsers do not load `fps.data` into a `file://` page. To publish it, copy `fps.html`, `fps.js`, `fps.wasm` and `fps.data` to any static host.
 
 ## VS Code
 

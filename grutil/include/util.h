@@ -592,7 +592,7 @@ inline GrVector3D GrMkNormalv(GrPoint3D * p) {
   return GrMkNormal(p[0], p[1], p[2]);
 }
 
-template <class T> static T operator%(const T & t, unsigned int p) {
+template <class T> T operator%(const T & t, unsigned int p) {
   T ret;
   //*output << "t.n = " << t.n << endl;
   for (int i=0; i<t.n; ++i) {

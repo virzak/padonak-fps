@@ -125,11 +125,14 @@ void init_app () {
   ui->initKeys();
 
   timer.pause();
+}
 
 
-  /* Event loop */ 
-  while (!app->m_done)
-  {
+/* One pass of the event loop; false once the game is over. */
+static bool frame () {
+
+  if (app->m_done) return false;
+
     /*Process outstanding events*/ 
     window->processEvents();
     
@@ -155,8 +158,11 @@ void init_app () {
     window->swapFunction();
     measureFPS();
 
-  }
-  
+  return true;
+}
+
+
+static void shutdown_app () {
   output->setOutputFunction(NULL);
 
   delete window;
@@ -177,6 +183,19 @@ void init_app () {
 #include <signal.h>
 #include <SDL3/SDL_main.h>   /* provides WinMain on Windows */
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+
+/* the browser calls this once per animation frame */
+static void browser_frame() {
+  if (!frame()) {
+    emscripten_cancel_main_loop();
+    shutdown_app();
+    SDL_Quit();
+  }
+}
+#endif
+
 static void gc_signal_handler(int signal_no)
 {
     signal(SIGINT, gc_signal_handler);  /* Make sure we catch another CTRL-C. */
@@ -192,7 +211,13 @@ int main(int argc, char **argv)
   signal(SIGABRT, gc_signal_handler);
   
   init_app();
+#ifdef __EMSCRIPTEN__
+  emscripten_set_main_loop(browser_frame, 0, true);   /* does not return */
+#else
+  while (frame()) {}
+  shutdown_app();
   SDL_Quit();
+#endif
   return 0;
 }
 

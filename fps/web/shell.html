@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Padonak FPS</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0;
+    padding: 0 16px 24px;
+    background: #111;
+    color: #ccc;
+    font: 14px/1.5 system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 { font-size: 18px; font-weight: 600; margin: 16px 0 12px; color: #eee; }
+  #game { position: relative; max-width: 100%; }
+  canvas { display: block; max-width: 100%; background: #000; outline: none; }
+  #overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.65);
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    user-select: none;
+  }
+  #bar { display: flex; gap: 12px; align-items: center; margin: 10px 0; }
+  button {
+    font: inherit;
+    color: #eee;
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 4px 12px;
+    cursor: pointer;
+  }
+  button:hover { background: #333; }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 16px; margin: 8px 0 0; max-width: 640px; }
+  dt { color: #eee; }
+  dd { margin: 0; }
+</style>
+</head>
+<body>
+<h1>Padonak FPS</h1>
+
+<div id="game">
+  <canvas id="canvas" width="640" height="480" tabindex="-1"></canvas>
+  <div id="overlay">Loading...</div>
+</div>
+
+<div id="bar">
+  <button id="fullscreen" type="button">Fullscreen</button>
+  <span id="status"></span>
+</div>
+
+<dl>
+  <dt>Mouse</dt><dd>Look around</dd>
+  <dt>W A S D, arrows</dt><dd>Move and turn</dd>
+  <dt>Left button</dt><dd>Shoot</dd>
+  <dt>Right button</dt><dd>Jump</dd>
+  <dt>Tab</dt><dd>Third-person view while held; wheel zooms</dd>
+  <dt>O</dt><dd>Fly</dd>
+  <dt>M, T</dt><dd>Mirror on and off, stencil mirror</dd>
+  <dt>L</dt><dd>Lighting</dd>
+  <dt>`</dt><dd>Console</dd>
+  <dt>F1, F3</dt><dd>Fullscreen, pause</dd>
+  <dt>Esc</dt><dd>Release the mouse</dd>
+</dl>
+
+<script>
+  var canvas = document.getElementById('canvas');
+  var overlay = document.getElementById('overlay');
+  var status = document.getElementById('status');
+  var ready = false;
+
+  function showOverlay(text) {
+    overlay.textContent = text;
+    overlay.style.display = 'flex';
+  }
+
+  var Module = {
+    canvas: canvas,
+    print: function (text) { console.log(text); },
+    printErr: function (text) { console.error(text); },
+    setStatus: function (text) {
+      if (!ready && text) overlay.textContent = text;
+    },
+    onRuntimeInitialized: function () {
+      ready = true;
+      showOverlay('Click to play');
+    }
+  };
+
+  /* The browser only locks the pointer after a click. */
+  overlay.addEventListener('click', function () {
+    if (!ready) return;
+    overlay.style.display = 'none';
+    canvas.focus();
+    var lock = canvas.requestPointerLock();
+    if (lock && lock.catch) {
+      lock.catch(function () { showOverlay('Click to play (the mouse could not be captured)'); });
+    }
+  });
+
+  document.addEventListener('pointerlockchange', function () {
+    if (ready && document.pointerLockElement !== canvas) {
+      showOverlay('Click to resume');
+    }
+  });
+
+  document.getElementById('fullscreen').addEventListener('click', function () {
+    Module.requestFullscreen(true, false);
+  });
+
+  /* Space, Tab and the arrow keys would scroll or move focus otherwise. */
+  window.addEventListener('keydown', function (e) {
+    if (['Tab', 'Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+         'PageUp', 'PageDown', 'F1', 'F3'].indexOf(e.code) >= 0) {
+      e.preventDefault();
+    }
+  });
+  canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+  window.onerror = function (message) {
+    status.textContent = 'Error: ' + message;
+  };
+</script>
+{{{ SCRIPT }}}
+</body>
+</html>

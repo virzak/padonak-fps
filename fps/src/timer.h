@@ -11,25 +11,8 @@
 #ifndef __TIMER_H__
 #define __TIMER_H__
 
-#ifdef linux
-#include <sys/timeb.h>
-#endif
-
-#ifdef WIN32
-#include <windows.h>
-#endif
-  
 class Timer {
-#ifdef linux
-  struct timeb m_start;
-  struct timeb m_last;
-#endif
-
-#ifdef WIN32
-  LARGE_INTEGER m_start;
-  LARGE_INTEGER m_last;
-  unsigned long int m_ticksPerMSec;
-#endif
+  unsigned long long m_start;   /* SDL_GetTicks() milliseconds */
 
   long int m_current;
   long int m_change;

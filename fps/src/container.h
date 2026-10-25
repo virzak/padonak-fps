@@ -29,9 +29,9 @@ class CContainer : /*virtual public CObject,*/ public deque<T *> {
 
     // Destructor
     ~CContainer() {
-      while (!empty()) {
-        delete front();
-        pop_front();
+      while (!this->empty()) {
+        delete this->front();
+        this->pop_front();
       }
     }
   
@@ -42,7 +42,7 @@ class CContainer : /*virtual public CObject,*/ public deque<T *> {
       for (typename deque<T *>::const_iterator i = c.begin(); 
           i != c.end(); ++i ) {
         T *elem = new T(**i);
-        push_back(elem);
+        this->push_back(elem);
       } // for  
       return *this;
     }
@@ -64,8 +64,8 @@ class CObjectContainer : virtual public CObject, public CContainer<T> {
     // Draws the container
     virtual void onDraw() const {
       // traverse deque nodes
-      for (typename deque<T *>::const_iterator i = begin(); 
-          i < end(); ++i)
+      for (typename deque<T *>::const_iterator i = this->begin(); 
+          i < this->end(); ++i)
       {
         (*i)->onDraw(); 
       }  
@@ -73,8 +73,8 @@ class CObjectContainer : virtual public CObject, public CContainer<T> {
     
     virtual void onUpdate(unsigned int msecs=0) {
       // traverse deque nodes
-      for (typename deque<T *>::iterator i = begin(); 
-          i < end(); ++i)
+      for (typename deque<T *>::iterator i = this->begin(); 
+          i < this->end(); ++i)
       {
         (*i)->onUpdate(msecs); 
       }  

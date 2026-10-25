@@ -19,6 +19,21 @@
       }
     },
     {
+      "name": "web",
+      "displayName": "Browser (Emscripten, WebGL 2)",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/artifacts/${presetName}",
+      "toolchainFile": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "condition": {
+        "type": "notEquals",
+        "lhs": "$env{EMSDK}",
+        "rhs": ""
+      }
+    },
+    {
       "name": "linux",
       "displayName": "Linux / WSLg",
       "generator": "Unix Makefiles",
@@ -47,6 +62,10 @@
     {
       "name": "linux",
       "configurePreset": "linux"
+    },
+    {
+      "name": "web",
+      "configurePreset": "web"
     }
   ]
 }
