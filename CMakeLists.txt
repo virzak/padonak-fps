@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(OldGfx LANGUAGES CXX)
+project(PadonakFps LANGUAGES CXX)
 
 # fps compiles the grutil, subdiv and surface_paster_cpp sources directly,
 # the same way the original Visual Studio project did.

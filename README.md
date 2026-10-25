@@ -1,6 +1,6 @@
-# OldGfx
+# padonak-fps
 
-Old OpenGL projects from 2003-2010, recovered from CVS working copies (the CVS repository itself was lost, but most files carry their CVS history in their `$Log` comment blocks).
+Padonak FPS, a small OpenGL first-person shooter from 2003, and the graphics libraries it is built from. Recovered from CVS working copies (the CVS repository itself was lost, but most files carry their CVS history in their `$Log` comment blocks).
 
 - `fps` - "Padonak FPS", a small first-person shooter. See `fps/README` for the controls.
 - `grutil` - shared point, vector, matrix and colour classes.
