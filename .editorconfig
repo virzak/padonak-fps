@@ -1,0 +1,20 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+# make requires tabs before recipe lines.
+[{Makefile,Makefile.*}]
+indent_style = tab
+
+# Visual Studio 2010 expects CRLF in its solution and project files.
+[*.{sln,vcproj,vcxproj,vcxproj.filters}]
+end_of_line = crlf

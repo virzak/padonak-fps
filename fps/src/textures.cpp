@@ -21,8 +21,9 @@
 #include "textures.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <jpeglib.h>
 #include "engine.h"
+/* after engine.h so X11 Xmd.h defines XMD_H and jpeg skips its INT32 */
+#include <jpeglib.h>
 
 
 /* simple loader for 24bit bitmaps (data is in rgb-format) */

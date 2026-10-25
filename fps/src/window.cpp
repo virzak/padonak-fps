@@ -105,6 +105,8 @@ void CWindow::makeRasterFont(void)
 
     fontInfo = XLoadQueryFont(GLWin.dpy,
         "-adobe-helvetica-medium-r-normal--17-120-100-100-p-88-iso8859-1");
+    if (fontInfo == NULL) /* e.g. WSLg, which only has the built-in font */
+        fontInfo = XLoadQueryFont(GLWin.dpy, "fixed");
     if (fontInfo == NULL) {
         output->printf ("no font found\n");
         exit (0);

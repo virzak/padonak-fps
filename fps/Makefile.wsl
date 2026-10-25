@@ -1,0 +1,48 @@
+# Linux / WSLg build. Compiles fps together with the sibling
+# grutil, subdiv and surface_paster_cpp sources (same set as fps.vcxproj).
+#
+#   make -f Makefile.wsl          build ./fps-linux
+#   make -f Makefile.wsl run      build and run (from this directory, data/ is relative)
+
+ROOT     := ..
+BUILD    := build-linux
+TARGET   := fps-linux
+
+CXX      ?= g++
+CXXFLAGS ?= -g -O2
+CXXFLAGS += -std=gnu++98 -fpermissive -w \
+            -Isrc -I. \
+            -I$(ROOT)/grutil/include \
+            -I$(ROOT)/subdiv/include \
+            -I$(ROOT)/surface_paster_cpp/include
+LDLIBS   := -lGL -lGLU -lX11 -lXxf86vm -lXt -ljpeg -lm
+
+SRCS := $(wildcard src/*.cpp) \
+        $(ROOT)/grutil/src/util.cpp \
+        $(ROOT)/subdiv/src/subdiv.cpp \
+        $(ROOT)/subdiv/src/polyhedron.cpp \
+        $(ROOT)/surface_paster_cpp/lib/patch.cpp
+
+OBJS := $(addprefix $(BUILD)/,$(notdir $(SRCS:.cpp=.o)))
+vpath %.cpp src $(ROOT)/grutil/src $(ROOT)/subdiv/src $(ROOT)/surface_paster_cpp/lib
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CXX) $(OBJS) -o $@ $(LDLIBS)
+
+$(BUILD)/%.o: %.cpp | $(BUILD)
+	$(CXX) $(CXXFLAGS) -MMD -c $< -o $@
+
+$(BUILD):
+	mkdir -p $@
+
+run: $(TARGET)
+	./$(TARGET)
+
+clean:
+	rm -rf $(BUILD) $(TARGET)
+
+-include $(OBJS:.o=.d)
+
+.PHONY: all run clean

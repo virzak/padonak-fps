@@ -28,6 +28,7 @@
 #include "world.h"
 #include "textures.h"
 #include "window.h"
+#include "camera.h"
 
 extern const char *worldfile;   /* datafile for our 3D world */
 
