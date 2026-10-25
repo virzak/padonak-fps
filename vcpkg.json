@@ -1,0 +1,8 @@
+{
+  "dependencies": [
+    {
+      "name": "libjpeg-turbo",
+      "platform": "windows"
+    }
+  ]
+}

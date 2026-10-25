@@ -39,3 +39,6 @@ Release/
 # Prebuilt libjpeg the Windows build links against (a global *.lib rule
 # would otherwise drop it)
 !/fps/jpeg/jpeg.lib
+
+# CMake build trees
+/artifacts/
