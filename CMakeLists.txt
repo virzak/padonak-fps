@@ -2,8 +2,10 @@ cmake_minimum_required(VERSION 3.25)
 
 project(PadonakFps LANGUAGES CXX)
 
-# fps compiles the grutil, subdiv and surface_paster_cpp sources directly,
-# the same way the original Visual Studio project did.
+# fps compiles the grutil sources directly. The subdiv and
+# surface_paster_cpp libraries are kept in the repository but the game no
+# longer builds them: it never drew their objects (that code was commented
+# out in 2003) and they use fixed-function OpenGL.
 add_executable(fps
   fps/src/background.cpp
   fps/src/camera.cpp
@@ -26,18 +28,15 @@ add_executable(fps
   fps/src/world.cpp
   fps/src/xray.cpp
   grutil/src/util.cpp
-  subdiv/src/polyhedron.cpp
-  subdiv/src/subdiv.cpp
-  surface_paster_cpp/lib/patch.cpp
 )
 
 target_include_directories(fps PRIVATE
   fps
   fps/src
   grutil/include
-  subdiv/include
-  surface_paster_cpp/include
 )
+# grutil's few fixed-function drawing helpers are not used by the game
+target_compile_definitions(fps PRIVATE GRUTIL_NO_GL)
 
 find_package(SDL3 REQUIRED CONFIG)
 find_package(OpenGL REQUIRED)

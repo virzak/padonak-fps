@@ -15,7 +15,9 @@
 #include <math.h>
 #include <stdio.h>
 #include <math.h>
+#ifndef GRUTIL_NO_GL
 #include <GL/gl.h>
+#endif
 
 #include "util.h"
 
@@ -240,6 +242,7 @@ const GrMatrix4x4 GrMatrix4x4::invMatrix(int type) {
   
 }
 
+#ifndef GRUTIL_NO_GL  /* fixed-function OpenGL helpers */
 void GrMatrix4x4::glMultMatrix () {
     int i,j;
     double mm[16];
@@ -255,6 +258,7 @@ void GrMatrix4x4::glMultMatrix () {
 void GrMatrix4x4::glGetModelView() {
   glGetDoublev(GL_MODELVIEW_MATRIX, (GLdouble *)e);
 }
+#endif
     
 void GrMatrix4x4::print(ostream * out) {
   unsigned int i,j;
@@ -402,6 +406,7 @@ const GrVector3D GrMkNormal(GrPoint3D p0, GrPoint3D p1, GrPoint3D p2) {
 
 // draw frame
 
+#ifndef GRUTIL_NO_GL
 void GrFrame3D::drawColoured() {
   for (unsigned int axis=0; axis < 3; ++axis) {
     glColor3d((axis == 0), (axis == 1), (axis == 2));
@@ -421,6 +426,7 @@ void GrFrame3D::drawColoured() {
   glEnd();
   
 }
+#endif
 
 
 

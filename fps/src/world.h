@@ -15,7 +15,6 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "patch.h"
 
 using namespace::std;
 
@@ -41,45 +40,6 @@ struct CMovement {
   double dist;
   double speed;
 };
-
-
-class CPatch : public GrBPatch, virtual public CObject {
-  public:
-    CPatch(unsigned int m, unsigned int n) : GrBPatch(m,n) {}
-    virtual void onDraw() const; 
-    virtual void onUpdate(unsigned int /*msecs=0*/);
-    void setPosition(const GrPoint3D & p) {
-      m_pos = p;
-    }
-};
-
-
-/*
-
- 
-
-class CPatch : virtual public CObject {
-    GrBPatch * patch;
-  public:
-    void load() {
-      patch = new GrBPatch(4, 4);
-    }
-    
-    virtual void onDraw() const {
-      if (patch)
-        patch->drawPatch(GL_RENDER, 0);
-    }
-
-    ~CPatch() {
-      if (patch)
-        delete patch;
-    }
-    
-};
-
-
-
- */
 
 
 class CSector : public CObject {

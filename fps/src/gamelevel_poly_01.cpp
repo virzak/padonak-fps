@@ -5900,6 +5900,7 @@ static GLfloat textures [3950][2] = {
 static int material_ref [1][2] = {
 {0,5635}
 };
+#if 0  /* standalone fixed-function viewer, not used by the game */
 void MyMaterial(GLenum mode,GLfloat *f,GLfloat alpha)
 {
  GLfloat d[4];
@@ -5968,7 +5969,6 @@ GLint Gen3DObjectList()
    return lid;
 };
 
-#ifdef _WIN32  /* Win32-only standalone viewer, not used by the game */
 float sizex,sizey;
 LONG WINAPI WndProc (HWND, UINT, WPARAM, LPARAM);
 GLsizei glnWidth, glnHeight;
@@ -6154,4 +6154,4 @@ void DrawScene (HDC hdc, UINT nAngle,UINT nAngle2)
     glFlush();
     SwapBuffers (hdc);
 };
-#endif /* _WIN32 */
+#endif
