@@ -348,6 +348,13 @@ bool CWindow::createGLWindow(char* title, int width, int height, int bits,
     gl_win.height = dmScreenSettings.dmPelsHeight;
   }
 
+  // The manifest makes us per-monitor DPI aware, so scale the windowed
+  // size ourselves instead of letting Windows stretch a blurry bitmap.
+  UINT dpi = GetDpiForSystem();
+  if (!gl_win.fs) {
+    gl_win.width = MulDiv(gl_win.width, dpi, USER_DEFAULT_SCREEN_DPI);
+    gl_win.height = MulDiv(gl_win.height, dpi, USER_DEFAULT_SCREEN_DPI);
+  }
 
 
 
@@ -363,7 +370,7 @@ bool CWindow::createGLWindow(char* title, int width, int height, int bits,
   wc.cbClsExtra    = 0;                  // No Extra Window Data
   wc.cbWndExtra    = 0;                  // No Extra Window Data
   wc.hInstance    = hInstance;              // Set The Instance
-  wc.hIcon      = LoadIcon(NULL, IDI_WINLOGO);      // Load The Default Icon
+  wc.hIcon      = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_FPS));
   wc.hCursor      = LoadCursor(NULL, IDC_ARROW);      // Load The Arrow Pointer
   wc.hbrBackground  = NULL;                  // No Background Required For GL
   wc.lpszMenuName    = NULL;                  // We Don't Want A Menu
@@ -416,7 +423,7 @@ bool CWindow::createGLWindow(char* title, int width, int height, int bits,
   }
 
   //if (!gl_win.fs)
-  AdjustWindowRectEx(&WindowRect, dwStyle, FALSE, dwExStyle);    // Adjust Window To True Requested Size
+  AdjustWindowRectExForDpi(&WindowRect, dwStyle, FALSE, dwExStyle, dpi);
 
   // Create The Window
   if (!(hWnd=CreateWindowEx(  dwExStyle,              // Extended Style For The Window
@@ -890,9 +897,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 window->gl_win.height = HIWORD(lParam);
     }
     CGraphics::instanceOf()->resizeGLScene(LOWORD(lParam),HIWORD(lParam));  // LoWord=Width, HiWord=Height
-    
-    
-    break;  
+
+
+    break;
+
+  case WM_DPICHANGED:          // Moved to a monitor with different scaling
+    {
+      RECT *r = (RECT *) lParam;
+      SetWindowPos(hWnd, NULL, r->left, r->top, r->right - r->left,
+                   r->bottom - r->top, SWP_NOZORDER | SWP_NOACTIVATE);
+    }
+    break;
     
 
   default:

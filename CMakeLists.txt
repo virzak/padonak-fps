@@ -45,7 +45,7 @@ target_link_libraries(fps PRIVATE OpenGL::GL OpenGL::GLU JPEG::JPEG)
 
 if(WIN32)
   set_target_properties(fps PROPERTIES WIN32_EXECUTABLE ON)
-  target_sources(fps PRIVATE fps/fps.rc)
+  target_sources(fps PRIVATE fps/fps.rc fps/fps.manifest)
   target_compile_definitions(fps PRIVATE WIN32 _WINDOWS _CRT_SECURE_NO_WARNINGS)
 else()
   find_package(X11 REQUIRED)
