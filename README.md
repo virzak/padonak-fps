@@ -76,7 +76,7 @@ cmake --build --preset web
 python3 -m http.server --directory artifacts/web 8000
 ```
 
-Open http://localhost:8000/fps.html and click the game to capture the mouse; Esc releases it. The page has to come from a web server, because browsers do not load `fps.data` into a `file://` page. To publish it, copy `fps.html`, `fps.js`, `fps.wasm` and `fps.data` to any static host.
+Open http://localhost:8000/fps.html and click the game to capture the mouse; Esc releases it. On a phone or tablet, a tap goes fullscreen in landscape and the game shows touch controls: the left thumb moves, dragging elsewhere looks around, and buttons on the right fire, jump and switch the view. The desktop builds show them too on a touch screen. The page has to come from a web server, because browsers do not load `fps.data` into a `file://` page. To publish it, copy `fps.html`, `fps.js`, `fps.wasm` and `fps.data` to any static host.
 
 ## VS Code
 

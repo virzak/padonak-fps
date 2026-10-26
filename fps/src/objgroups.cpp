@@ -18,6 +18,7 @@
 
 #include "render.h"
 #include "engine.h"
+#include "touch.h"
 
 void C3DObjects::onDraw() const {
   // set up for projective drawing to draw 3D objects
@@ -103,6 +104,8 @@ void CGUI2D::onDraw() const {
       rnd::color(1, 0, 1);
       output->draw(10, window->gl_win.height - 20, 20);
     }
+
+    touchControls().draw(window->gl_win.width, window->gl_win.height);
 
 
   rnd::popAttrib();

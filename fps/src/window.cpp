@@ -15,6 +15,7 @@
 #include "output.h"
 #include "render.h"
 #include "resource.h"
+#include "touch.h"
 #include <math.h>
 
 
@@ -43,6 +44,8 @@ bool CWindow::createGLWindow(const char* title, int width, int height,
   /* the window and taskbar icon come from fps.rc on Windows */
   SDL_SetHint(SDL_HINT_WINDOWS_INTRESOURCE_ICON, FPS_STR(IDI_FPS));
   SDL_SetHint(SDL_HINT_WINDOWS_INTRESOURCE_ICON_SMALL, FPS_STR(IDI_SMALL));
+  /* touches drive the on-screen controls, not a pretend mouse */
+  SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 
 #ifdef __EMSCRIPTEN__
   /* OpenGL ES 3.0, which the browser provides as WebGL 2 */
@@ -174,6 +177,9 @@ void CWindow::processEvents() {
   /* handle the events in the queue */
   while (SDL_PollEvent(&event))
   {
+    if (touchControls().event(event, m_callbacks, gl_win.width, gl_win.height))
+      continue;
+
     switch (event.type)
     {
       case SDL_EVENT_QUIT:
@@ -188,6 +194,7 @@ void CWindow::processEvents() {
         break;
 
       case SDL_EVENT_MOUSE_MOTION:
+        if (event.motion.which == SDL_TOUCH_MOUSEID) break;
         {
           /* keep the sub-pixel remainder so slow movement is not lost */
           static float rest_x = 0, rest_y = 0;
@@ -205,6 +212,8 @@ void CWindow::processEvents() {
        * they move up to 6 and 7. */
       case SDL_EVENT_MOUSE_BUTTON_DOWN:
       case SDL_EVENT_MOUSE_BUTTON_UP:
+        if (event.button.which == SDL_TOUCH_MOUSEID) break;
+        touchControls().otherInput();
         {
           unsigned int b = event.button.button;
           if (b > 3) b += 2;
@@ -225,6 +234,7 @@ void CWindow::processEvents() {
         break;
 
       case SDL_EVENT_KEY_DOWN:
+        touchControls().otherInput();
         m_callbacks->keyPress(event.key.scancode);
         if (m_callbacks->isSendingLetter()) {
           /* control characters do not arrive as text input */

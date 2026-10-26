@@ -23,6 +23,7 @@ add_executable(fps
   fps/src/stain.cpp
   fps/src/textures.cpp
   fps/src/timer.cpp
+  fps/src/touch.cpp
   fps/src/ui.cpp
   fps/src/wall.cpp
   fps/src/window.cpp

@@ -14,6 +14,7 @@
 #include "gr.h"
 #include "window.h"
 #include "ui.h"
+#include "touch.h"
 #include "camera.h"
 #include "textures.h"
 #include <string>
@@ -138,6 +139,7 @@ static bool frame () {
     
     // Handle user input
     ui->keyButtonAction();
+    touchControls().endFrame();
 
     // Update timer
     if (!timer.isPaused()) timer.update();

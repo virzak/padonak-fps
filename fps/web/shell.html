@@ -18,7 +18,7 @@
   }
   h1 { font-size: 18px; font-weight: 600; margin: 16px 0 12px; color: #eee; }
   #game { position: relative; max-width: 100%; }
-  canvas { display: block; max-width: 100%; background: #000; outline: none; }
+  canvas { display: block; max-width: 100%; background: #000; outline: none; touch-action: none; }
   #overlay {
     position: absolute;
     inset: 0;
@@ -65,13 +65,14 @@
   <dt>W A S D, arrows</dt><dd>Move and turn</dd>
   <dt>Left button</dt><dd>Shoot</dd>
   <dt>Right button</dt><dd>Jump</dd>
-  <dt>Tab</dt><dd>Third-person view while held; wheel zooms</dd>
+  <dt>Tab</dt><dd>Third-person view on and off; hold it and use the wheel to zoom</dd>
   <dt>O</dt><dd>Fly</dd>
   <dt>M, T</dt><dd>Mirror on and off, stencil mirror</dd>
   <dt>L</dt><dd>Lighting</dd>
   <dt>`</dt><dd>Console</dd>
   <dt>F1, F3</dt><dd>Fullscreen, pause</dd>
   <dt>Esc</dt><dd>Release the mouse</dd>
+  <dt>Touch</dt><dd>Left thumb moves, drag elsewhere to look; buttons on the right</dd>
 </dl>
 
 <script>
@@ -94,15 +95,31 @@
     },
     onRuntimeInitialized: function () {
       ready = true;
-      showOverlay('Click to play');
+      showOverlay(matchMedia('(pointer: coarse)').matches ? 'Tap to play' : 'Click to play');
     }
   };
 
+  var touchMode = false;
+
+  /* Fullscreen in landscape suits a phone; the game draws its own controls. */
+  function playTouch() {
+    touchMode = true;
+    Module.requestFullscreen(false, true);
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(function () {});
+    }
+  }
+
   /* The browser only locks the pointer after a click. */
-  overlay.addEventListener('click', function () {
+  overlay.addEventListener('pointerup', function (e) {
     if (!ready) return;
     overlay.style.display = 'none';
     canvas.focus();
+    if (e.pointerType === 'touch') {
+      playTouch();
+      return;
+    }
+    touchMode = false;
     var lock = canvas.requestPointerLock();
     if (lock && lock.catch) {
       lock.catch(function () { showOverlay('Click to play (the mouse could not be captured)'); });
@@ -110,10 +127,19 @@
   });
 
   document.addEventListener('pointerlockchange', function () {
-    if (ready && document.pointerLockElement !== canvas) {
+    if (ready && !touchMode && document.pointerLockElement !== canvas) {
       showOverlay('Click to resume');
     }
   });
+
+  document.addEventListener('fullscreenchange', function () {
+    if (ready && touchMode && !document.fullscreenElement) {
+      showOverlay('Tap to play');
+    }
+  });
+
+  /* Without this a tap also arrives as a mouse click after the touch. */
+  canvas.addEventListener('touchstart', function (e) { e.preventDefault(); }, { passive: false });
 
   document.getElementById('fullscreen').addEventListener('click', function () {
     Module.requestFullscreen(true, false);
