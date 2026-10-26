@@ -1,0 +1,27 @@
+{
+  "name": "padonak-fps",
+  "build": { "dockerfile": "Dockerfile" },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/padonak-fps,type=bind",
+  "workspaceFolder": "/workspaces/padonak-fps",
+
+  // The game draws through WSLg, using the Windows GPU via /dev/dxg. These
+  // paths exist in WSL-based engines (podman machine, Docker Desktop); on a
+  // Linux host use scripts/container.ps1 instead, which mounts the host X11.
+  "mounts": [
+    "source=/mnt/wslg/.X11-unix,target=/tmp/.X11-unix,type=bind",
+    "source=/usr/lib/wsl,target=/usr/lib/wsl,type=bind,readonly"
+  ],
+  "runArgs": ["--device=/dev/dxg"],
+  "containerEnv": {
+    "DISPLAY": ":0",
+    "LD_LIBRARY_PATH": "/usr/lib/wsl/lib",
+    "GALLIUM_DRIVER": "d3d12"
+  },
+  "forwardPorts": [8000],
+
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-vscode.cpptools", "EditorConfig.EditorConfig"]
+    }
+  }
+}

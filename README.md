@@ -48,6 +48,23 @@ cd fps
 
 On Windows, run this inside a WSL distribution such as `wsl -d Ubuntu`; the window opens on the Windows desktop through WSLg.
 
+## Build and run in a container
+
+Without a suitable distribution, use the dev container in `.devcontainer`, an Ubuntu 26.04 image with the build tools, SDL3 and the Emscripten SDK. It works with podman or Docker; on Windows the engine runs in WSL and the game window opens through WSLg, drawing on the GPU.
+
+`scripts/container.ps1` builds the image and runs a command in it, with the repository at `/workspaces/padonak-fps`:
+
+```powershell
+scripts/container.ps1 sh -c "cmake --preset linux && cmake --build --preset linux"
+scripts/container.ps1 sh -c "cd fps && ../artifacts/linux/fps"
+scripts/container.ps1 sh -c "cmake --preset web && cmake --build --preset web"
+scripts/container.ps1 -Port 8000 python3 -m http.server -d artifacts/web 8000
+```
+
+Without arguments it opens a shell. `-NoGpu` draws with Mesa's software renderer instead. In VS Code, "Dev Containers: Reopen in Container" uses the same image (for podman, set `dev.containers.dockerPath` to `podman`), and the Linux tasks and debugger then run inside it.
+
+CMake build directories remember the absolute source path, so delete `artifacts/linux` or `artifacts/web` when switching between a WSL distribution and the container.
+
 ## Build and run in a browser
 
 The web build uses Emscripten. Install the [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html) (on Windows, inside WSL is easiest), then:
@@ -65,7 +82,7 @@ Open http://localhost:8000/fps.html and click the game to capture the mouse; Esc
 
 Open the repository folder; VS Code recommends the C/C++ and EditorConfig extensions. Tasks (Terminal > Run Task) are `configure`, `build` (the default build task, Ctrl+Shift+B), `build debug` and `run`. On Windows they run through `scripts/vsdev.ps1`, which enters the Visual Studio developer environment first, so no developer prompt is needed.
 
-To debug, pick `fps (Windows)` or `fps (Linux / WSL)` in Run and Debug and press F5. Both build first and start the game in `fps`. The Linux configuration needs `gdb` (`sudo apt-get install gdb`); in WSL, open the folder with the WSL extension.
+To debug, pick `fps (Windows)` or `fps (Linux)` in Run and Debug and press F5. Both build first and start the game in `fps`. The Linux configuration needs `gdb` (`sudo apt-get install gdb`, already in the dev container); in WSL, open the folder with the WSL extension.
 
 ## Original build files
 

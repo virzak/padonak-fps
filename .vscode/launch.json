@@ -11,7 +11,7 @@
       "preLaunchTask": "build debug"
     },
     {
-      "name": "fps (Linux / WSL)",
+      "name": "fps (Linux)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/artifacts/linux/fps",
