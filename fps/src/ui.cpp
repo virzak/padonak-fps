@@ -180,7 +180,7 @@ void CUI::keyAction()
     bool new_fs_flag = !window->gl_win.fs;
     timer.pause();
     delete window;
-    window = CWindow::instanceOf("Victor's FPS", 640, 480, 24, new_fs_flag, 
+    window = CWindow::instanceOf(FPS_TITLE, 640, 480, 24, new_fs_flag, 
         this);
     timer.pause();
     m_destroyed_by_user = true;

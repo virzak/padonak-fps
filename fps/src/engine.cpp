@@ -117,7 +117,7 @@ void init_app () {
 
 
   /* default to fullscreen */ 
-  if (!(window = CWindow::instanceOf("Victor's FPS", 640, 480, 16, false, ui)))
+  if (!(window = CWindow::instanceOf(FPS_TITLE, 640, 480, 16, false, ui)))
   {
     app->m_done = true;
   }

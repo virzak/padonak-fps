@@ -29,6 +29,12 @@
 #include "window.h"
 #include "camera.h"
 
+/* FPS_VERSION is the git commit, set by CMake */
+#ifndef FPS_VERSION
+#define FPS_VERSION "unknown"
+#endif
+#define FPS_TITLE "Victor's FPS (" FPS_VERSION ")"
+
 extern const char *worldfile;   /* datafile for our 3D world */
 
 extern bool mirror;

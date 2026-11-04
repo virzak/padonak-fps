@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="build" content="@FPS_VERSION@ @FPS_BUILD_TIME@">
 <title>Padonak FPS</title>
 <style>
   :root { color-scheme: dark; }
@@ -80,6 +81,7 @@
   var overlay = document.getElementById('overlay');
   var status = document.getElementById('status');
   var ready = false;
+  console.info('Padonak FPS @FPS_VERSION@, built @FPS_BUILD_TIME@');
 
   function showOverlay(text) {
     overlay.textContent = text;

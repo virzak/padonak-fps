@@ -1,0 +1,56 @@
+name: Pages
+
+# Builds the browser version and publishes it to GitHub Pages.
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  ACT:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: mymindstorm/setup-emsdk@v16
+        with:
+          version: 6.0.13
+
+      - name: Build
+        run: |
+          cmake --preset web
+          cmake --build --preset web
+
+      - name: Collect the site
+        run: |
+          mkdir _site
+          cp artifacts/web/fps.html _site/index.html
+          cp artifacts/web/fps.js artifacts/web/fps.wasm artifacts/web/fps.data \
+            artifacts/web/build-info.json _site/
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        if: ${{ !env.ACT }}
+        uses: actions/deploy-pages@v5

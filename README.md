@@ -2,6 +2,8 @@
 
 Padonak FPS, a small OpenGL first-person shooter from 2003, and the graphics libraries it is built from. Recovered from CVS working copies (the CVS repository itself was lost, but most files carry their CVS history in their `$Log` comment blocks).
 
+Play it in a browser at https://virzak.github.io/padonak-fps/ (published from `master` by `.github/workflows/pages.yml`). Every build carries its git commit: in the window title on the desktop, and on the web in the page's `build` meta tag, in `build-info.json` next to it and in the browser console.
+
 - `fps` - "Padonak FPS", a small first-person shooter. See `fps/README` for the controls.
 - `grutil` - shared point, vector, matrix and colour classes.
 - `subdiv` - polyhedron subdivision surfaces, with a GLUT viewer in `subdiv/ui_glut`.
